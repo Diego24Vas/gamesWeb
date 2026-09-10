@@ -8,7 +8,8 @@ import {
   IconBreakout,
   IconFlappyBird,
   IconHanoi,
-  IconWordle
+  IconWordle,
+  IconTetris
 } from './icons';
 
 const emit = defineEmits<{
@@ -22,6 +23,10 @@ interface GameItem {
 
 // Juegos de 1 Jugador
 const singlePlayerGames: GameItem[] = [
+  {
+    id: 'tetris',
+    title: 'Tetris'
+  },
   {
     id: 'snake',
     title: 'Snake'
@@ -81,7 +86,8 @@ const handleSelectGame = (gameId: ViewState) => {
           @click="handleSelectGame(game.id)"
         >
           <div class="card-icon" aria-hidden="true">
-            <IconSnake v-if="game.id === 'snake'" />
+            <IconTetris v-if="game.id === 'tetris'" />
+            <IconSnake v-else-if="game.id === 'snake'" />
             <IconBreakout v-else-if="game.id === 'breakout'" />
             <IconFlappyBird v-else-if="game.id === 'flappy'" />
             <IconHanoi v-else-if="game.id === 'hanoi'" />

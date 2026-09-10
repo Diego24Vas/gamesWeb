@@ -10,6 +10,7 @@ import BreakoutGame from './components/games/BreakoutGame.vue';
 import FlappyBirdGame from './components/games/FlappyBirdGame.vue';
 import HanoiGame from './components/games/HanoiGame.vue';
 import WordleGame from './components/games/WordleGame.vue';
+import TetrisGame from './components/games/TetrisGame.vue';
 import { IconGamepad } from './components/icons';
 
 // Estado global de la vista activa
@@ -59,6 +60,11 @@ const navigateToMenu = () => {
         <HanoiGame
           v-else-if="currentView === 'hanoi'"
           key="hanoi"
+          @back="navigateToMenu"
+        />
+        <TetrisGame
+          v-else-if="currentView === 'tetris'"
+          key="tetris"
           @back="navigateToMenu"
         />
         <WordleGame

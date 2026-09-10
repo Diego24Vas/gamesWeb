@@ -35,3 +35,5 @@ export { default as IconHanoi } from './IconHanoi.vue';
 export { default as IconUndo } from './IconUndo.vue';
 export { default as IconWordle } from './IconWordle.vue';
 export { default as IconBackspace } from './IconBackspace.vue';
+export { default as IconTetris } from './IconTetris.vue';
+export { default as IconRotate } from './IconRotate.vue';

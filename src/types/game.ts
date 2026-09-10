@@ -1,4 +1,4 @@
-export type ViewState = 'menu' | 'tictactoe' | 'connect4' | 'memory' | 'snake' | 'breakout' | 'flappy' | 'hanoi' | 'wordle';
+export type ViewState = 'menu' | 'tictactoe' | 'connect4' | 'memory' | 'snake' | 'breakout' | 'flappy' | 'hanoi' | 'wordle' | 'tetris';
 
 export interface GameMetadata {
   id: ViewState;
@@ -148,4 +148,13 @@ export interface WordleStats {
   currentStreak: number;
   maxStreak: number;
   distribution: Record<number, number>;
+}
+
+export type TetrominoType = 'I' | 'J' | 'L' | 'O' | 'S' | 'T' | 'Z';
+
+export interface TetrisScoreState {
+  score: number;
+  high: number;
+  lines: number;
+  level: number;
 }
