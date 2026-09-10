@@ -208,132 +208,149 @@ const isWinningCell = (r: number, c: number): boolean => {
       <div class="header-spacer" aria-hidden="true"></div>
     </header>
 
-    <!-- Marcador de victorias -->
-    <section class="scoreboard" aria-label="Marcador de Conecta 4">
-      <div
-        class="score-card player-red"
-        :class="{ 'is-turn': currentPlayer === 'red' && !isGameOver }"
-      >
-        <span class="player-label">
-          <IconDisc color="red" class="label-disc" /> Rojas
-        </span>
-        <span class="score-value">{{ scores.red }}</span>
-      </div>
-      <div class="score-card ties">
-        <span class="player-label">Empates</span>
-        <span class="score-value">{{ scores.draws }}</span>
-      </div>
-      <div
-        class="score-card player-yellow"
-        :class="{ 'is-turn': currentPlayer === 'yellow' && !isGameOver }"
-      >
-        <span class="player-label">
-          <IconDisc color="yellow" class="label-disc" /> Amarillas
-        </span>
-        <span class="score-value">{{ scores.yellow }}</span>
-      </div>
-    </section>
-
-    <!-- Banner de estado / Turno -->
-    <div
-      class="status-banner"
-      :class="{
-        'status-win': winner,
-        'status-draw': isDraw
-      }"
-      role="status"
-      aria-live="polite"
-    >
-      <template v-if="winner">
-        <IconTrophy class="status-icon" />
-        <span>¡El equipo <strong>{{ winner === 'red' ? 'Rojo' : 'Amarillo' }}</strong> ha ganado!</span>
-      </template>
-      <template v-else-if="isDraw">
-        <IconHandshake class="status-icon" />
-        <span>¡Tablero lleno! La partida terminó en <strong>empate</strong>.</span>
-      </template>
-      <template v-else>
-        <span>Turno de:</span>
-        <span class="current-turn-badge" :class="`badge-${currentPlayer}`">
-          <IconDisc :color="currentPlayer" class="turn-disc" />
-          {{ currentPlayer === 'red' ? 'Fichas Rojas' : 'Fichas Amarillas' }}
-        </span>
-      </template>
-    </div>
-
-    <!-- Indicador de caída de ficha (Hover preview) -->
-    <div class="drop-indicators" aria-hidden="true">
-      <div
-        v-for="col in COLS"
-        :key="col"
-        class="drop-col-preview"
-      >
-        <div
-          v-if="hoveredCol === col - 1 && !isGameOver && getAvailableRow(col - 1) !== -1"
-          class="preview-token"
-          :class="`token-${currentPlayer}`"
-        ></div>
-        <IconChevronDown v-else class="drop-arrow" />
-      </div>
-    </div>
-
-    <!-- Tablero de Conecta 4 -->
-    <div class="board-frame" role="region" aria-label="Tablero de Conecta 4">
-      <div class="columns-layer">
-        <button
-          v-for="colIdx in COLS"
-          :key="colIdx"
-          type="button"
-          class="column-trigger"
-          :class="{ 'col-full': getAvailableRow(colIdx - 1) === -1 }"
-          :disabled="isGameOver || getAvailableRow(colIdx - 1) === -1"
-          :aria-label="`Columna ${colIdx}`"
-          @click="dropToken(colIdx - 1)"
-          @mouseenter="hoveredCol = colIdx - 1"
-          @mouseleave="hoveredCol = null"
-          @focus="hoveredCol = colIdx - 1"
-          @blur="hoveredCol = null"
-        ></button>
-      </div>
-
-      <div class="grid-layer">
-        <div
-          v-for="(row, rIdx) in board"
-          :key="rIdx"
-          class="grid-row"
-        >
+    <!-- Contenedor del Juego: 2 Columnas en Desktop / Flujo Vertical en Móvil -->
+    <div class="game-layout">
+      <!-- Columna Principal: Tablero de Conecta 4 y Vista Previa -->
+      <div class="board-column">
+        <!-- Indicador de caída de ficha (Hover preview) -->
+        <div class="drop-indicators" aria-hidden="true">
           <div
-            v-for="(cell, cIdx) in row"
-            :key="cIdx"
-            class="grid-slot"
-            :class="{ 'is-winning': isWinningCell(rIdx, cIdx) }"
+            v-for="col in COLS"
+            :key="col"
+            class="drop-col-preview"
           >
             <div
-              v-if="cell"
-              class="token"
-              :class="[`token-${cell}`, { 'token-pop': true }]"
+              v-if="hoveredCol === col - 1 && !isGameOver && getAvailableRow(col - 1) !== -1"
+              class="preview-token"
+              :class="`token-${currentPlayer}`"
             ></div>
+            <IconChevronDown v-else class="drop-arrow" />
+          </div>
+        </div>
+
+        <!-- Tablero de Conecta 4 -->
+        <div class="board-frame" role="region" aria-label="Tablero de Conecta 4">
+          <div class="columns-layer">
+            <button
+              v-for="colIdx in COLS"
+              :key="colIdx"
+              type="button"
+              class="column-trigger"
+              :class="{ 'col-full': getAvailableRow(colIdx - 1) === -1 }"
+              :disabled="isGameOver || getAvailableRow(colIdx - 1) === -1"
+              :aria-label="`Columna ${colIdx}`"
+              @click="dropToken(colIdx - 1)"
+              @mouseenter="hoveredCol = colIdx - 1"
+              @mouseleave="hoveredCol = null"
+              @focus="hoveredCol = colIdx - 1"
+              @blur="hoveredCol = null"
+            ></button>
+          </div>
+
+          <div class="grid-layer">
+            <div
+              v-for="(row, rIdx) in board"
+              :key="rIdx"
+              class="grid-row"
+            >
+              <div
+                v-for="(cell, cIdx) in row"
+                :key="cIdx"
+                class="grid-slot"
+                :class="{ 'is-winning': isWinningCell(rIdx, cIdx) }"
+              >
+                <div
+                  v-if="cell"
+                  class="token"
+                  :class="[`token-${cell}`, { 'token-pop': true }]"
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Controles inferiores -->
-    <footer class="game-controls">
-      <button class="btn btn-primary" type="button" @click="resetGame">
-        <IconRefresh class="btn-icon" /> Nueva partida
-      </button>
-      <button class="btn btn-secondary" type="button" @click="resetScores">
-        <IconTrash class="btn-icon" /> Reiniciar marcador
-      </button>
-    </footer>
+      <!-- Columna Lateral en Desktop: Marcador, Turno/Estado y Acciones -->
+      <aside class="sidebar-column">
+        <!-- Marcador de victorias -->
+        <section class="scoreboard" aria-label="Marcador de Conecta 4">
+          <div
+            class="score-card player-red"
+            :class="{ 'is-turn': currentPlayer === 'red' && !isGameOver }"
+          >
+            <span class="player-label">
+              <IconDisc color="red" class="label-disc" /> Rojas
+            </span>
+            <span class="score-value">{{ scores.red }}</span>
+          </div>
+          <div class="score-card ties">
+            <span class="player-label">Empates</span>
+            <span class="score-value">{{ scores.draws }}</span>
+          </div>
+          <div
+            class="score-card player-yellow"
+            :class="{ 'is-turn': currentPlayer === 'yellow' && !isGameOver }"
+          >
+            <span class="player-label">
+              <IconDisc color="yellow" class="label-disc" /> Amarillas
+            </span>
+            <span class="score-value">{{ scores.yellow }}</span>
+          </div>
+        </section>
+
+        <!-- Banner de estado / Turno -->
+        <div
+          class="status-banner"
+          :class="{
+            'status-win': winner,
+            'status-draw': isDraw
+          }"
+          role="status"
+          aria-live="polite"
+        >
+          <template v-if="winner">
+            <IconTrophy class="status-icon" />
+            <span>¡El equipo <strong>{{ winner === 'red' ? 'Rojo' : 'Amarillo' }}</strong> ha ganado!</span>
+          </template>
+          <template v-else-if="isDraw">
+            <IconHandshake class="status-icon" />
+            <span>¡Tablero lleno! La partida terminó en <strong>empate</strong>.</span>
+          </template>
+          <template v-else>
+            <span>Turno de:</span>
+            <span class="current-turn-badge" :class="`badge-${currentPlayer}`">
+              <IconDisc :color="currentPlayer" class="turn-disc" />
+              {{ currentPlayer === 'red' ? 'Fichas Rojas' : 'Fichas Amarillas' }}
+            </span>
+          </template>
+        </div>
+
+        <!-- Controles inferiores -->
+        <footer class="game-controls">
+          <button class="btn btn-primary" type="button" @click="resetGame">
+            <IconRefresh class="btn-icon" /> Nueva partida
+          </button>
+          <button class="btn btn-secondary" type="button" @click="resetScores">
+            <IconTrash class="btn-icon" /> Reiniciar marcador
+          </button>
+        </footer>
+
+        <!-- Instrucciones y ayuda en desktop -->
+        <div class="c4-instructions">
+          <span class="instruction-icon">💡</span>
+          <p class="instruction-text">
+            Haz clic en una columna para soltar la ficha. Conecta <strong>4 en línea</strong> (horizontal, vertical o diagonal) para ganar.
+          </p>
+        </div>
+      </aside>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .c4-container {
   width: 100%;
-  max-width: 580px;
+  max-width: 920px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -346,6 +363,78 @@ const isWinningCell = (r: number, c: number): boolean => {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+/* Layout 2 Columnas en Desktop */
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 490px) 1fr;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+.board-column {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.sidebar-column .scoreboard {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 1.1fr;
+  gap: 0.5rem;
+}
+
+.sidebar-column .status-banner {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 46px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+.sidebar-column .game-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sidebar-column .game-controls .btn {
+  width: 100%;
+}
+
+.c4-instructions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.instruction-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.instruction-text {
+  margin: 0;
 }
 
 .game-title {
@@ -705,10 +794,26 @@ const isWinningCell = (r: number, c: number): boolean => {
   color: #1e293b;
 }
 
-@media (max-width: 540px) {
-  .connect4-container {
-    gap: 0.75rem;
+@media (max-width: 820px) {
+  .c4-container {
+    gap: 0.65rem;
+    max-width: 580px;
   }
+
+  /* Desmontar columnas de desktop para flujo vertical en teléfono */
+  .game-layout,
+  .board-column,
+  .sidebar-column {
+    display: contents;
+  }
+
+  .sidebar-column {
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+  }
+
   .game-header {
     gap: 0.35rem;
   }
@@ -723,7 +828,9 @@ const isWinningCell = (r: number, c: number): boolean => {
     font-size: 1.2rem;
     flex: 1;
   }
+
   .scoreboard {
+    order: 1;
     gap: 0.4rem;
   }
   .score-card {
@@ -736,21 +843,16 @@ const isWinningCell = (r: number, c: number): boolean => {
   .score-value {
     font-size: 1.25rem;
   }
+
   .status-banner {
+    order: 2;
     min-height: 42px;
     padding: 0.4rem 0.6rem;
     font-size: 0.88rem;
   }
-  .board-frame {
-    padding: 6px;
-    border-radius: 14px;
-  }
-  .grid-layer,
-  .grid-row,
-  .columns-layer {
-    gap: 4px;
-  }
+
   .drop-indicators {
+    order: 3;
     gap: 4px;
     padding: 0 6px;
     height: 28px;
@@ -759,12 +861,32 @@ const isWinningCell = (r: number, c: number): boolean => {
     width: 20px;
     height: 20px;
   }
+
+  .board-frame {
+    order: 4;
+    padding: 6px;
+    border-radius: 14px;
+  }
+  .grid-layer,
+  .grid-row,
+  .columns-layer {
+    gap: 4px;
+  }
+
   .game-controls {
+    order: 5;
+    flex-direction: row;
     gap: 0.4rem;
   }
-  .btn {
+  .game-controls .btn {
+    flex: 1;
     padding: 0.55rem 0.6rem;
     font-size: 0.82rem;
+  }
+
+  .c4-instructions {
+    order: 6;
+    display: none;
   }
 }
 </style>

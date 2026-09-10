@@ -216,24 +216,6 @@ const toggleSound = () => {
   }
 };
 
-const setDifficulty = (diff: SnakeDifficulty) => {
-  difficulty.value = diff;
-  try {
-    localStorage.setItem('gamesWeb_snake_diff', diff);
-  } catch {
-    // Fallback
-  }
-};
-
-const setMode = (m: SnakeMode) => {
-  mode.value = m;
-  try {
-    localStorage.setItem('gamesWeb_snake_mode', m);
-  } catch {
-    // Fallback
-  }
-};
-
 const resetHighscore = () => {
   scores.high = 0;
   try {
@@ -987,234 +969,128 @@ onUnmounted(() => {
       </button>
     </header>
 
-    <!-- Marcador de estadísticas -->
-    <section class="scoreboard" aria-label="Marcador del juego">
-      <div class="score-card current-score">
-        <span class="card-label">Puntos</span>
-        <span class="card-value">{{ scores.current }}</span>
-      </div>
-      <div class="score-card high-score" :class="{ 'is-new-record': isNewHighScore }">
-        <span class="card-label">
-          <IconTrophy class="trophy-icon" /> Récord
-        </span>
-        <span class="card-value">{{ scores.high }}</span>
-      </div>
-      <div class="score-card apples-count">
-        <span class="card-label">Manzanas</span>
-        <span class="card-value">{{ scores.apples }}</span>
-      </div>
-      <div class="score-card length-count">
-        <span class="card-label">Longitud</span>
-        <span class="card-value">{{ snake.length }}</span>
-      </div>
-    </section>
+    <!-- Contenedor del Juego: 2 Columnas en Desktop / Flujo Vertical en Móvil -->
+    <div class="game-layout">
+      <!-- Columna Principal: Canvas -->
+      <div class="canvas-column">
+        <!-- Tablero de Juego con Canvas y Overlays -->
+        <div class="canvas-wrapper">
+          <canvas
+            ref="canvasRef"
+            class="snake-canvas"
+            @touchstart.passive="handleTouchStart"
+            @touchmove.prevent
+            @touchend.passive="handleTouchEnd"
+          ></canvas>
 
-    <!-- Selector de dificultad y modo -->
-    <div class="settings-bar">
-      <div class="setting-group">
-        <span class="group-title">Velocidad:</span>
-        <div class="pill-buttons">
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: difficulty === 'easy' }"
-            @click="setDifficulty('easy')"
-          >
-            Fácil
-          </button>
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: difficulty === 'normal' }"
-            @click="setDifficulty('normal')"
-          >
-            Normal
-          </button>
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: difficulty === 'hard' }"
-            @click="setDifficulty('hard')"
-          >
-            Difícil
-          </button>
-        </div>
-      </div>
-
-      <div class="setting-group">
-        <span class="group-title">Bordes:</span>
-        <div class="pill-buttons">
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: mode === 'classic' }"
-            title="Chocar con el muro pierde el juego"
-            @click="setMode('classic')"
-          >
-            Paredes
-          </button>
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: mode === 'pass-through' }"
-            title="Atraviesa de un extremo a otro"
-            @click="setMode('pass-through')"
-          >
-            Sin Bordes
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tablero de Juego con Canvas y Overlays -->
-    <div class="canvas-wrapper">
-      <canvas
-        ref="canvasRef"
-        class="snake-canvas"
-        @touchstart.passive="handleTouchStart"
-        @touchmove.prevent
-        @touchend.passive="handleTouchEnd"
-      ></canvas>
-
-      <!-- Superposición de Inicio (Idle) -->
-      <div v-if="gameStatus === 'idle'" class="canvas-overlay" @click="startGame">
-        <div class="overlay-card">
-          <h3 class="overlay-title">Snake</h3>
-          <p class="overlay-subtitle">Guía a la culebrita, come manzanas y rompe tu propio récord</p>
-          <button class="overlay-play-btn" type="button" @click.stop="startGame">
-            <IconPlay class="play-svg" /> JUGAR
-          </button>
-          <div class="overlay-hint">
-            <span>Usa ⬆️ ⬇️ ⬅️ ➡️ o W A S D</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Superposición de Pausa -->
-      <div v-if="gameStatus === 'paused'" class="canvas-overlay" @click="togglePause">
-        <div class="overlay-card">
-          <h3 class="overlay-title">PAUSA</h3>
-          <p class="overlay-subtitle">Puntuación actual: {{ scores.current }}</p>
-          <button class="overlay-play-btn" type="button" @click.stop="togglePause">
-            <IconPlay class="play-svg" /> REANUDAR
-          </button>
-          <div class="overlay-hint">
-            <span>Pulsa Espacio para reanudar</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Superposición de Game Over -->
-      <div v-if="gameStatus === 'gameover'" class="canvas-overlay">
-        <div class="overlay-card gameover-card">
-          <div class="gameover-skull">💀</div>
-          <h3 class="overlay-title">¡JUEGO TERMINADO!</h3>
-          <div v-if="isNewHighScore" class="record-badge">
-            <IconTrophy class="trophy-badge-icon" /> ¡NUEVO RÉCORD!
-          </div>
-          <div class="final-stats">
-            <div class="final-stat-item">
-              <span class="stat-label">Puntaje</span>
-              <span class="stat-num">{{ scores.current }}</span>
-            </div>
-            <div class="final-stat-item">
-              <span class="stat-label">Manzanas</span>
-              <span class="stat-num">{{ scores.apples }}</span>
-            </div>
-            <div class="final-stat-item">
-              <span class="stat-label">Récord</span>
-              <span class="stat-num">{{ scores.high }}</span>
+          <!-- Superposición de Inicio (Idle) -->
+          <div v-if="gameStatus === 'idle'" class="canvas-overlay" @click="startGame">
+            <div class="overlay-card">
+              <h3 class="overlay-title">Snake</h3>
+              <p class="overlay-subtitle">Guía a la culebrita, come manzanas y rompe tu propio récord</p>
+              <button class="overlay-play-btn" type="button" @click.stop="startGame">
+                <IconPlay class="play-svg" /> JUGAR
+              </button>
+              <div class="overlay-hint">
+                <span>Usa ⬆️ ⬇️ ⬅️ ➡️ o W A S D</span>
+              </div>
             </div>
           </div>
-          <button class="overlay-play-btn retry-btn" type="button" @click="startGame">
-            <IconRefresh class="play-svg" /> VOLVER A INTENTAR
-          </button>
+
+          <!-- Superposición de Pausa -->
+          <div v-if="gameStatus === 'paused'" class="canvas-overlay" @click="togglePause">
+            <div class="overlay-card">
+              <h3 class="overlay-title">PAUSA</h3>
+              <p class="overlay-subtitle">Puntuación actual: {{ scores.current }}</p>
+              <button class="overlay-play-btn" type="button" @click.stop="togglePause">
+                <IconPlay class="play-svg" /> REANUDAR
+              </button>
+              <div class="overlay-hint">
+                <span>Pulsa Espacio para reanudar</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Superposición de Game Over -->
+          <div v-if="gameStatus === 'gameover'" class="canvas-overlay">
+            <div class="overlay-card gameover-card">
+              <div class="gameover-skull">💀</div>
+              <h3 class="overlay-title">¡JUEGO TERMINADO!</h3>
+              <div v-if="isNewHighScore" class="record-badge">
+                <IconTrophy class="trophy-badge-icon" /> ¡NUEVO RÉCORD!
+              </div>
+              <div class="final-stats">
+                <div class="final-stat-item">
+                  <span class="stat-label">Puntaje</span>
+                  <span class="stat-num">{{ scores.current }}</span>
+                </div>
+                <div class="final-stat-item">
+                  <span class="stat-label">Manzanas</span>
+                  <span class="stat-num">{{ scores.apples }}</span>
+                </div>
+                <div class="final-stat-item">
+                  <span class="stat-label">Récord</span>
+                  <span class="stat-num">{{ scores.high }}</span>
+                </div>
+              </div>
+              <button class="overlay-play-btn retry-btn" type="button" @click="startGame">
+                <IconRefresh class="play-svg" /> VOLVER A INTENTAR
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Controles D-Pad Virtuales para Pantallas Táctiles y Móviles -->
-    <div class="dpad-container" aria-label="Controles direccionales táctiles">
-      <div class="dpad-row">
-        <button
-          type="button"
-          class="dpad-btn up"
-          aria-label="Arriba"
-          @click="requestDirection('UP')"
-        >
-          ▲
-        </button>
-      </div>
-      <div class="dpad-row middle">
-        <button
-          type="button"
-          class="dpad-btn left"
-          aria-label="Izquierda"
-          @click="requestDirection('LEFT')"
-        >
-          ◀
-        </button>
-        <button
-          type="button"
-          class="dpad-btn pause"
-          :aria-label="gameStatus === 'playing' ? 'Pausar' : 'Jugar'"
-          @click="togglePause"
-        >
-          <IconPause v-if="gameStatus === 'playing'" />
-          <IconPlay v-else />
-        </button>
-        <button
-          type="button"
-          class="dpad-btn right"
-          aria-label="Derecha"
-          @click="requestDirection('RIGHT')"
-        >
-          ▶
-        </button>
-      </div>
-      <div class="dpad-row">
-        <button
-          type="button"
-          class="dpad-btn down"
-          aria-label="Abajo"
-          @click="requestDirection('DOWN')"
-        >
-          ▼
-        </button>
-      </div>
-    </div>
+      <!-- Columna Lateral en Desktop: Marcador, Ajustes, Acciones y Atajos -->
+      <aside class="sidebar-column">
+        <!-- Marcador de estadísticas -->
+        <section class="scoreboard" aria-label="Marcador del juego">
+          <div class="score-card current-score">
+            <span class="card-label">Puntos</span>
+            <span class="card-value">{{ scores.current }}</span>
+          </div>
+          <div class="score-card high-score" :class="{ 'is-new-record': isNewHighScore }">
+            <span class="card-label">
+              <IconTrophy class="trophy-icon" /> Récord
+            </span>
+            <span class="card-value">{{ scores.high }}</span>
+          </div>
+          <div class="score-card apples-count">
+            <span class="card-label">Manzanas</span>
+            <span class="card-value">{{ scores.apples }}</span>
+          </div>
+          <div class="score-card length-count">
+            <span class="card-label">Longitud</span>
+            <span class="card-value">{{ snake.length }}</span>
+          </div>
+        </section>
 
-    <!-- Botonera de acciones -->
-    <footer class="game-controls">
-      <button class="btn btn-primary" type="button" @click="startGame">
-        <IconRefresh class="btn-icon" /> {{ gameStatus === 'idle' ? 'Iniciar Partida' : 'Reiniciar Partida' }}
-      </button>
-      <button
-        class="btn btn-secondary"
-        type="button"
-        :disabled="gameStatus === 'idle' || gameStatus === 'gameover'"
-        @click="togglePause"
-      >
-        <IconPlay v-if="gameStatus === 'paused'" class="btn-icon" />
-        <IconPause v-else class="btn-icon" />
-        {{ gameStatus === 'paused' ? 'Reanudar' : 'Pausar' }}
-      </button>
-      <button
-        class="btn btn-secondary"
-        type="button"
-        :disabled="scores.high === 0"
-        title="Restablecer récord a 0"
-        @click="resetHighscore"
-      >
-        <IconTrash class="btn-icon" /> Borrar Récord
-      </button>
-    </footer>
-
-    <!-- Ayuda de teclado -->
-    <div class="keyboard-help">
-      <span class="key-badge">⬆️ ⬇️ ⬅️ ➡️</span> / <span class="key-badge">W A S D</span> Moverse &bull;
-      <span class="key-badge">Espacio</span> Pausa &bull;
-      <span class="key-badge">Enter / R</span> Reiniciar
+        <!-- Botonera de acciones -->
+        <footer class="game-controls">
+          <button class="btn btn-primary" type="button" @click="startGame">
+            <IconRefresh class="btn-icon" /> {{ gameStatus === 'idle' ? 'Iniciar Partida' : 'Reiniciar Partida' }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            type="button"
+            :disabled="gameStatus === 'idle' || gameStatus === 'gameover'"
+            @click="togglePause"
+          >
+            <IconPlay v-if="gameStatus === 'paused'" class="btn-icon" />
+            <IconPause v-else class="btn-icon" />
+            {{ gameStatus === 'paused' ? 'Reanudar' : 'Pausar' }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            type="button"
+            :disabled="scores.high === 0"
+            title="Restablecer récord a 0"
+            @click="resetHighscore"
+          >
+            <IconTrash class="btn-icon" /> Borrar Récord
+          </button>
+        </footer>
+      </aside>
     </div>
   </div>
 </template>
@@ -1222,7 +1098,7 @@ onUnmounted(() => {
 <style scoped>
 .snake-container {
   width: 100%;
-  max-width: 520px;
+  max-width: 960px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -1235,6 +1111,48 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+/* Layout de 2 Columnas en Desktop */
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 460px) 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.canvas-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.sidebar-column .scoreboard {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+
+.sidebar-column .game-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sidebar-column .game-controls .btn {
+  width: 100%;
 }
 
 .game-title {
@@ -1348,60 +1266,6 @@ onUnmounted(() => {
   font-size: 1.35rem;
   font-weight: 800;
   color: #0f172a;
-}
-
-/* Ajustes de configuración (Velocidad y Bordes) */
-.settings-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  background: #ffffff;
-  padding: 0.6rem 0.85rem;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.setting-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.group-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.pill-buttons {
-  display: inline-flex;
-  background: #f1f5f9;
-  border-radius: 8px;
-  padding: 2px;
-}
-
-.pill-btn {
-  background: transparent;
-  border: none;
-  padding: 0.3rem 0.65rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.pill-btn:hover {
-  color: #0f172a;
-}
-
-.pill-btn.active {
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .win-text {
@@ -1584,63 +1448,6 @@ onUnmounted(() => {
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
 }
 
-/* Controles D-Pad Virtuales */
-.dpad-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  user-select: none;
-}
-
-.dpad-row {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-}
-
-.dpad-row.middle {
-  align-items: center;
-}
-
-.dpad-btn {
-  width: 52px;
-  height: 52px;
-  background: #ffffff;
-  border: 2px solid #cbd5e1;
-  border-radius: 12px;
-  font-size: 1.25rem;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  touch-action: manipulation;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.12s ease;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.dpad-btn:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  color: #0f172a;
-}
-
-.dpad-btn:active {
-  background: #e2e8f0;
-  border-color: #3b82f6;
-}
-
-.dpad-btn.pause {
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 1.1rem;
-}
-
 /* Controles inferiores */
 .game-controls {
   display: flex;
@@ -1689,29 +1496,24 @@ onUnmounted(() => {
   color: #1e293b;
 }
 
-/* Ayuda de teclado */
-.keyboard-help {
-  text-align: center;
-  font-size: 0.78rem;
-  color: #64748b;
-}
-
-.key-badge {
-  display: inline-block;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  padding: 1px 5px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #334155;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-}
-
-@media (max-width: 540px) {
+@media (max-width: 820px) {
   .snake-container {
     gap: 0.65rem;
-    max-width: 100%;
+    max-width: 520px;
+  }
+
+  /* Desmontar columnas de desktop para flujo vertical en teléfono */
+  .game-layout,
+  .canvas-column,
+  .sidebar-column {
+    display: contents;
+  }
+
+  .sidebar-column {
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
   }
 
   /* Header compacto en una sola fila */
@@ -1733,6 +1535,7 @@ onUnmounted(() => {
 
   /* Marcador en 1 sola fila con 4 columnas compactas */
   .scoreboard {
+    order: 1;
     grid-template-columns: repeat(4, 1fr);
     gap: 0.35rem;
   }
@@ -1748,26 +1551,9 @@ onUnmounted(() => {
     font-size: 1.15rem;
   }
 
-  /* Barra de ajustes compacta y horizontal */
-  .settings-bar {
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 0.35rem 0.55rem;
-    gap: 0.35rem;
-  }
-  .setting-group {
-    gap: 0.3rem;
-  }
-  .group-title {
-    font-size: 0.7rem;
-  }
-  .pill-btn {
-    padding: 0.22rem 0.45rem;
-    font-size: 0.7rem;
-  }
-
   /* Canvas a ancho completo proporcional */
   .canvas-wrapper {
+    order: 2;
     width: 100%;
     aspect-ratio: 1 / 1;
     border-width: 2px;
@@ -1805,36 +1591,17 @@ onUnmounted(() => {
     font-size: 1rem;
   }
 
-  /* Controles D-Pad táctiles ergonómicos */
-  .dpad-container {
-    gap: 4px;
-    touch-action: none;
-  }
-  .dpad-row {
-    gap: 4px;
-  }
-  .dpad-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 1.1rem;
-    border-radius: 10px;
-    touch-action: none;
-  }
-
   /* Botones inferiores en una sola fila horizontal */
   .game-controls {
+    order: 3;
     flex-direction: row;
     gap: 0.35rem;
   }
-  .btn {
+  .game-controls .btn {
+    flex: 1;
     padding: 0.52rem 0.5rem;
     font-size: 0.78rem;
     gap: 0.3rem;
-  }
-
-  /* Ocultar texto de ayuda de teclado en pantallas táctiles */
-  .keyboard-help {
-    display: none;
   }
 }
 </style>

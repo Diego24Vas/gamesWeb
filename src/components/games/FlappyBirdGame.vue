@@ -263,15 +263,6 @@ const toggleSound = () => {
   }
 };
 
-const setDifficulty = (diff: FlappyDifficulty) => {
-  difficulty.value = diff;
-  try {
-    localStorage.setItem('gamesWeb_flappy_diff', diff);
-  } catch {
-    // Fallback
-  }
-};
-
 const resetHighscore = () => {
   scores.high = 0;
   try {
@@ -837,190 +828,118 @@ onUnmounted(() => {
       </button>
     </header>
 
-    <!-- Marcador en 1 sola fila compacta -->
-    <section class="scoreboard" aria-label="Marcador de Flappy Bird">
-      <div class="score-card current-score">
-        <span class="card-label">Puntos</span>
-        <span class="card-value">{{ scores.current }}</span>
-      </div>
-      <div class="score-card high-score" :class="{ 'is-new-record': isNewHighScore }">
-        <span class="card-label">
-          <IconTrophy class="trophy-icon" /> Récord
-        </span>
-        <span class="card-value">{{ scores.high }}</span>
-      </div>
-    </section>
+    <!-- Contenedor del Juego: 2 Columnas en Desktop / Flujo Vertical en Móvil -->
+    <div class="game-layout">
+      <!-- Columna Principal: Canvas -->
+      <div class="canvas-column">
+        <!-- Tablero de Juego con Canvas y Overlays -->
+        <div class="canvas-wrapper">
+          <canvas
+            ref="canvasRef"
+            class="flappy-canvas"
+            @mousedown="handleCanvasPointerDown"
+            @touchstart.passive="handleCanvasPointerDown"
+          ></canvas>
 
-    <!-- Selector de dificultad en pastillas compactas -->
-    <div class="settings-bar">
-      <div class="setting-group">
-        <span class="group-title">Dificultad:</span>
-        <div class="pill-buttons">
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: difficulty === 'easy' }"
-            @click="setDifficulty('easy')"
-          >
-            Fácil
-          </button>
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: difficulty === 'normal' }"
-            @click="setDifficulty('normal')"
-          >
-            Normal
-          </button>
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: difficulty === 'hard' }"
-            @click="setDifficulty('hard')"
-          >
-            Desafío
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Banner de estado dinámico -->
-    <div
-      class="status-banner"
-      :class="{
-        'status-playing': gameStatus === 'playing',
-        'status-paused': gameStatus === 'paused',
-        'status-over': gameStatus === 'gameover'
-      }"
-      role="status"
-    >
-      <template v-if="gameStatus === 'idle'">
-        <span>🎮 Toca la pantalla o presiona <strong>Espacio</strong> para comenzar</span>
-      </template>
-      <template v-else-if="gameStatus === 'playing'">
-        <span>🪶 ¡Aletea con ritmo para atravesar las tuberías!</span>
-      </template>
-      <template v-else-if="gameStatus === 'paused'">
-        <IconPause class="status-icon" />
-        <span>Juego pausado. Presiona <strong>P</strong> o reanuda</span>
-      </template>
-      <template v-else-if="gameStatus === 'gameover'">
-        <span v-if="isNewHighScore" class="win-text">
-          <IconTrophy class="status-icon trophy" /> ¡Felicitaciones! ¡Nuevo récord: <strong>{{ scores.current }}</strong> pts!
-        </span>
-        <span v-else>💀 ¡Caíste! Puntuación obtenida: <strong>{{ scores.current }}</strong> pts</span>
-      </template>
-    </div>
-
-    <!-- Tablero de Juego con Canvas y Overlays -->
-    <div class="canvas-wrapper">
-      <canvas
-        ref="canvasRef"
-        class="flappy-canvas"
-        @mousedown="handleCanvasPointerDown"
-        @touchstart.passive="handleCanvasPointerDown"
-      ></canvas>
-
-      <!-- Overlay de Inicio (Idle) -->
-      <div v-if="gameStatus === 'idle'" class="canvas-overlay" @click="startGame">
-        <div class="overlay-card">
-          <h3 class="overlay-title">Flappy Bird</h3>
-          <p class="overlay-subtitle">Aletea entre las tuberías sin chocar con los bordes</p>
-          <button class="overlay-play-btn" type="button" @click.stop="startGame">
-            <IconPlay class="play-svg" /> JUGAR
-          </button>
-          <div class="overlay-hint">
-            <span>Toca la pantalla o usa Espacio / ⬆️</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Overlay de Pausa -->
-      <div v-if="gameStatus === 'paused'" class="canvas-overlay" @click="togglePause">
-        <div class="overlay-card">
-          <h3 class="overlay-title">PAUSA</h3>
-          <p class="overlay-subtitle">Puntuación actual: {{ scores.current }}</p>
-          <button class="overlay-play-btn" type="button" @click.stop="togglePause">
-            <IconPlay class="play-svg" /> REANUDAR
-          </button>
-          <div class="overlay-hint">
-            <span>Toca para reanudar</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Overlay de Game Over -->
-      <div v-if="gameStatus === 'gameover'" class="canvas-overlay">
-        <div class="overlay-card gameover-card">
-          <h3 class="overlay-title">¡PARTIDA TERMINADA!</h3>
-          <div v-if="isNewHighScore" class="record-badge">
-            <IconTrophy class="trophy-badge-icon" /> ¡NUEVO RÉCORD!
-          </div>
-          <div class="final-stats">
-            <div class="final-stat-item">
-              <span class="stat-label">Puntaje</span>
-              <span class="stat-num">{{ scores.current }}</span>
-            </div>
-            <div class="final-stat-item">
-              <span class="stat-label">Medalla</span>
-              <span class="stat-num">{{ medalType()?.icon || '—' }}</span>
-            </div>
-            <div class="final-stat-item">
-              <span class="stat-label">Récord</span>
-              <span class="stat-num">{{ scores.high }}</span>
+          <!-- Overlay de Inicio (Idle) -->
+          <div v-if="gameStatus === 'idle'" class="canvas-overlay" @click="startGame">
+            <div class="overlay-card">
+              <h3 class="overlay-title">Flappy Bird</h3>
+              <p class="overlay-subtitle">Aletea entre las tuberías sin chocar con los bordes</p>
+              <button class="overlay-play-btn" type="button" @click.stop="startGame">
+                <IconPlay class="play-svg" /> JUGAR
+              </button>
+              <div class="overlay-hint">
+                <span>Toca la pantalla o usa Espacio / ⬆️</span>
+              </div>
             </div>
           </div>
-          <button class="overlay-play-btn retry-btn" type="button" @click="startGame">
-            <IconRefresh class="play-svg" /> VOLVER A INTENTAR
-          </button>
+
+          <!-- Overlay de Pausa -->
+          <div v-if="gameStatus === 'paused'" class="canvas-overlay" @click="togglePause">
+            <div class="overlay-card">
+              <h3 class="overlay-title">PAUSA</h3>
+              <p class="overlay-subtitle">Puntuación actual: {{ scores.current }}</p>
+              <button class="overlay-play-btn" type="button" @click.stop="togglePause">
+                <IconPlay class="play-svg" /> REANUDAR
+              </button>
+              <div class="overlay-hint">
+                <span>Toca para reanudar</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overlay de Game Over -->
+          <div v-if="gameStatus === 'gameover'" class="canvas-overlay">
+            <div class="overlay-card gameover-card">
+              <h3 class="overlay-title">¡PARTIDA TERMINADA!</h3>
+              <div v-if="isNewHighScore" class="record-badge">
+                <IconTrophy class="trophy-badge-icon" /> ¡NUEVO RÉCORD!
+              </div>
+              <div class="final-stats">
+                <div class="final-stat-item">
+                  <span class="stat-label">Puntaje</span>
+                  <span class="stat-num">{{ scores.current }}</span>
+                </div>
+                <div class="final-stat-item">
+                  <span class="stat-label">Medalla</span>
+                  <span class="stat-num">{{ medalType()?.icon || '—' }}</span>
+                </div>
+                <div class="final-stat-item">
+                  <span class="stat-label">Récord</span>
+                  <span class="stat-num">{{ scores.high }}</span>
+                </div>
+              </div>
+              <button class="overlay-play-btn retry-btn" type="button" @click="startGame">
+                <IconRefresh class="play-svg" /> VOLVER A INTENTAR
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Botón táctil grande para aletear en móvil -->
-    <div class="tap-control-wrapper">
-      <button
-        type="button"
-        class="btn-flap"
-        aria-label="Aletear"
-        @touchstart.prevent="flap"
-        @mousedown="flap"
-      >
-        🪶 ALETEAR
-      </button>
-    </div>
+      <!-- Columna Lateral en Desktop: Marcador, Ajustes, Acciones y Atajos -->
+      <aside class="sidebar-column">
+        <!-- Marcador en 1 sola fila compacta -->
+        <section class="scoreboard" aria-label="Marcador de Flappy Bird">
+          <div class="score-card current-score">
+            <span class="card-label">Puntos</span>
+            <span class="card-value">{{ scores.current }}</span>
+          </div>
+          <div class="score-card high-score" :class="{ 'is-new-record': isNewHighScore }">
+            <span class="card-label">
+              <IconTrophy class="trophy-icon" /> Récord
+            </span>
+            <span class="card-value">{{ scores.high }}</span>
+          </div>
+        </section>
 
-    <!-- Botonera de acciones -->
-    <footer class="game-controls">
-      <button class="btn btn-primary" type="button" @click="startGame">
-        <IconRefresh class="btn-icon" /> {{ gameStatus === 'idle' ? 'Iniciar Partida' : 'Reiniciar Partida' }}
-      </button>
-      <button
-        class="btn btn-secondary"
-        type="button"
-        :disabled="gameStatus === 'idle' || gameStatus === 'gameover'"
-        @click="togglePause"
-      >
-        <IconPlay v-if="gameStatus === 'paused'" class="btn-icon" />
-        <IconPause v-else class="btn-icon" />
-        {{ gameStatus === 'paused' ? 'Reanudar' : 'Pausar' }}
-      </button>
-      <button
-        class="btn btn-secondary"
-        type="button"
-        :disabled="scores.high === 0"
-        title="Restablecer récord a 0"
-        @click="resetHighscore"
-      >
-        <IconTrash class="btn-icon" /> Borrar Récord
-      </button>
-    </footer>
-
-    <!-- Ayuda de teclado -->
-    <div class="keyboard-help">
-      <span class="key-badge">Espacio / ⬆️ / W</span> Aletear &bull;
-      <span class="key-badge">P</span> Pausa &bull;
-      <span class="key-badge">R</span> Reiniciar
+        <!-- Botonera de acciones -->
+        <footer class="game-controls">
+          <button class="btn btn-primary" type="button" @click="startGame">
+            <IconRefresh class="btn-icon" /> {{ gameStatus === 'idle' ? 'Iniciar Partida' : 'Reiniciar Partida' }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            type="button"
+            :disabled="gameStatus === 'idle' || gameStatus === 'gameover'"
+            @click="togglePause"
+          >
+            <IconPlay v-if="gameStatus === 'paused'" class="btn-icon" />
+            <IconPause v-else class="btn-icon" />
+            {{ gameStatus === 'paused' ? 'Reanudar' : 'Pausar' }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            type="button"
+            :disabled="scores.high === 0"
+            title="Restablecer récord a 0"
+            @click="resetHighscore"
+          >
+            <IconTrash class="btn-icon" /> Borrar Récord
+          </button>
+        </footer>
+      </aside>
     </div>
   </div>
 </template>
@@ -1028,11 +947,11 @@ onUnmounted(() => {
 <style scoped>
 .flappy-container {
   width: 100%;
-  max-width: 440px;
+  max-width: 860px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 /* Header */
@@ -1041,6 +960,49 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+/* Layout de 2 Columnas en Desktop */
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) 1fr;
+  gap: 1.75rem;
+  align-items: start;
+  justify-content: center;
+}
+
+.canvas-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.sidebar-column .scoreboard {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+
+.sidebar-column .game-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sidebar-column .game-controls .btn {
+  width: 100%;
 }
 
 .game-title {
@@ -1164,103 +1126,6 @@ onUnmounted(() => {
   font-size: 1.35rem;
   font-weight: 800;
   color: #0f172a;
-}
-
-/* Barra de ajustes (Dificultad) */
-.settings-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  background: #ffffff;
-  padding: 0.55rem 0.85rem;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.setting-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.group-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.pill-buttons {
-  display: inline-flex;
-  background: #f1f5f9;
-  border-radius: 8px;
-  padding: 2px;
-}
-
-.pill-btn {
-  background: transparent;
-  border: none;
-  padding: 0.3rem 0.65rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.pill-btn:hover {
-  color: #0f172a;
-}
-
-.pill-btn.active {
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Banner de estado */
-.status-banner {
-  text-align: center;
-  padding: 0.65rem 0.9rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.92rem;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  min-height: 44px;
-}
-
-.status-banner.status-playing {
-  background: #f0fdf4;
-  border-color: #86efac;
-  color: #166534;
-}
-
-.status-banner.status-paused {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #92400e;
-}
-
-.status-banner.status-over {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: #991b1b;
-}
-
-.win-text {
-  color: #15803d;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
 }
 
 /* Canvas y Contenedor */
@@ -1420,41 +1285,6 @@ onUnmounted(() => {
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
 }
 
-/* Botón grande para aletear en móvil */
-.tap-control-wrapper {
-  display: flex;
-  justify-content: center;
-}
-
-.btn-flap {
-  width: 100%;
-  max-width: 320px;
-  padding: 0.85rem 1.25rem;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: #78350f;
-  border: 2px solid #d97706;
-  border-radius: 14px;
-  font-size: 1.1rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);
-  transition: all 0.12s ease;
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.btn-flap:active {
-  transform: scale(0.96);
-  background: #f59e0b;
-}
-
 /* Controles inferiores */
 .game-controls {
   display: flex;
@@ -1503,29 +1333,25 @@ onUnmounted(() => {
   color: #1e293b;
 }
 
-/* Ayuda de teclado */
-.keyboard-help {
-  text-align: center;
-  font-size: 0.78rem;
-  color: #64748b;
-}
-
-.key-badge {
-  display: inline-block;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  padding: 1px 5px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #334155;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-}
-
 /* Estilos móviles compactos */
-@media (max-width: 540px) {
+@media (max-width: 820px) {
   .flappy-container {
     gap: 0.6rem;
+    max-width: 440px;
+  }
+
+  /* Desmontar columnas de desktop para flujo vertical en teléfono */
+  .game-layout,
+  .canvas-column,
+  .sidebar-column {
+    display: contents;
+  }
+
+  .sidebar-column {
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
   }
 
   .game-header {
@@ -1543,6 +1369,7 @@ onUnmounted(() => {
   }
 
   .scoreboard {
+    order: 1;
     gap: 0.35rem;
   }
 
@@ -1560,44 +1387,22 @@ onUnmounted(() => {
     font-size: 1.15rem;
   }
 
-  .settings-bar {
-    padding: 0.35rem 0.5rem;
-  }
-
-  .group-title {
-    font-size: 0.72rem;
-  }
-
-  .pill-btn {
-    padding: 0.22rem 0.5rem;
-    font-size: 0.7rem;
-  }
-
-  .status-banner {
-    padding: 0.4rem 0.6rem;
-    min-height: 38px;
-    font-size: 0.82rem;
-  }
-
-  .btn-flap {
-    padding: 0.7rem 1rem;
-    font-size: 1rem;
-    border-radius: 12px;
+  .canvas-wrapper {
+    order: 2;
+    max-height: none;
   }
 
   .game-controls {
+    order: 3;
     flex-direction: row;
     gap: 0.4rem;
   }
 
-  .btn {
+  .game-controls .btn {
+    flex: 1;
     padding: 0.55rem 0.5rem;
     font-size: 0.78rem;
     gap: 0.3rem;
-  }
-
-  .keyboard-help {
-    display: none;
   }
 }
 </style>

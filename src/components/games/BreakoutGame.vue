@@ -280,23 +280,6 @@ const loadStoredData = () => {
   }
 };
 
-const setDifficulty = (diff: BreakoutDifficulty) => {
-  difficulty.value = diff;
-  try {
-    localStorage.setItem('gamesWeb_breakout_diff', diff);
-  } catch {
-    // Fallback
-  }
-  // Si la pelota está pegada, actualizar su velocidad inmediatamente
-  balls.value.forEach(b => {
-    if (b.stuckToPaddle) {
-      const newSpeed = BREAKOUT_SPEEDS[diff] + (scores.level - 1) * 0.2;
-      b.speed = newSpeed;
-      b.vy = -newSpeed;
-    }
-  });
-};
-
 const saveHighscore = (val: number) => {
   scores.high = val;
   try {
@@ -1237,15 +1220,6 @@ const handleTouchStart = (e: TouchEvent) => {
   }
 };
 
-// Controles virtuales para botones móviles
-const handleButtonMoveStart = (dir: 'left' | 'right') => {
-  keysPressed[dir] = true;
-};
-
-const handleButtonMoveEnd = (dir: 'left' | 'right') => {
-  keysPressed[dir] = false;
-};
-
 // Lifecycle
 onMounted(() => {
   loadStoredData();
@@ -1303,256 +1277,145 @@ onUnmounted(() => {
       </button>
     </header>
 
-    <!-- Marcador de estadísticas -->
-    <section class="scoreboard" aria-label="Marcador de Breakout">
-      <div class="score-card current-score">
-        <span class="card-label">Puntos</span>
-        <span class="card-value">{{ scores.current }}</span>
-      </div>
-      <div class="score-card high-score" :class="{ 'is-new-record': isNewHighScore }">
-        <span class="card-label">
-          <IconTrophy class="trophy-icon" /> Récord
-        </span>
-        <span class="card-value">{{ scores.high }}</span>
-      </div>
-      <div class="score-card lives-card">
-        <span class="card-label">Vidas</span>
-        <div class="lives-icons">
-          <IconHeart
-            v-for="i in 5"
-            :key="i"
-            class="heart-icon"
-            :class="{ active: i <= scores.lives }"
-          />
-        </div>
-      </div>
-      <div class="score-card level-card">
-        <span class="card-label">Nivel</span>
-        <span class="card-value">{{ scores.level }}</span>
-      </div>
-    </section>
+    <!-- Contenedor del Juego: 2 Columnas en Desktop / Flujo Vertical en Móvil -->
+    <div class="game-layout">
+      <!-- Columna Principal: Canvas -->
+      <div class="canvas-column">
+        <!-- Contenedor del Tablero Canvas -->
+        <div class="canvas-wrapper">
+          <canvas
+            ref="canvasRef"
+            class="breakout-canvas"
+            @mousemove="handleMouseMove"
+            @click="handleCanvasClick"
+            @touchstart.passive="handleTouchStart"
+            @touchmove.passive="handleTouchMove"
+          ></canvas>
 
-    <!-- Selector de velocidad / dificultad -->
-    <div class="settings-bar">
-      <div class="setting-group">
-        <span class="group-title">Velocidad:</span>
-        <div class="pill-buttons">
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: difficulty === 'easy' }"
-            @click="setDifficulty('easy')"
-          >
-            Fácil
-          </button>
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: difficulty === 'normal' }"
-            @click="setDifficulty('normal')"
-          >
-            Normal
-          </button>
-          <button
-            type="button"
-            class="pill-btn"
-            :class="{ active: difficulty === 'hard' }"
-            @click="setDifficulty('hard')"
-          >
-            Rápido
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Banner de estado dinámico -->
-    <div
-      class="status-banner"
-      :class="{
-        'status-playing': gameStatus === 'playing',
-        'status-paused': gameStatus === 'paused',
-        'status-cleared': gameStatus === 'level_cleared',
-        'status-over': gameStatus === 'gameover'
-      }"
-      role="status"
-    >
-      <template v-if="gameStatus === 'idle'">
-        <span>🎮 Haz clic, toca o presiona <strong>Espacio</strong> para lanzar la pelota</span>
-      </template>
-      <template v-else-if="gameStatus === 'playing'">
-        <span v-if="paddle.expandTimer > 0" class="power-active">
-          ⚡ ¡Paleta expandida activa! ({{ Math.ceil(paddle.expandTimer / 1000) }}s)
-        </span>
-        <span v-else-if="balls.some(b => b.stuckToPaddle)">
-          🚀 Presiona <strong>Espacio</strong> o haz clic para lanzar la pelota
-        </span>
-        <span v-else>
-          💥 ¡Destruye todos los ladrillos y atrapa las cápsulas de poder!
-        </span>
-      </template>
-      <template v-else-if="gameStatus === 'level_cleared'">
-        <span>🎉 ¡Nivel {{ scores.level }} superado! Preparando siguiente nivel...</span>
-      </template>
-      <template v-else-if="gameStatus === 'paused'">
-        <IconPause class="status-icon" />
-        <span>Juego pausado. Presiona <strong>Espacio</strong> para continuar</span>
-      </template>
-      <template v-else-if="gameStatus === 'gameover'">
-        <span v-if="isNewHighScore" class="win-text">
-          <IconTrophy class="status-icon trophy" /> ¡Felicitaciones! ¡Nuevo récord: <strong>{{ scores.current }}</strong> pts!
-        </span>
-        <span v-else>💀 ¡Fin de la partida! Puntuación final: <strong>{{ scores.current }}</strong></span>
-      </template>
-    </div>
-
-    <!-- Contenedor del Tablero Canvas -->
-    <div class="canvas-wrapper">
-      <canvas
-        ref="canvasRef"
-        class="breakout-canvas"
-        @mousemove="handleMouseMove"
-        @click="handleCanvasClick"
-        @touchstart.passive="handleTouchStart"
-        @touchmove.passive="handleTouchMove"
-      ></canvas>
-
-      <!-- Overlay de Inicio (Idle) -->
-      <div v-if="gameStatus === 'idle'" class="canvas-overlay" @click="startGame">
-        <div class="overlay-card">
-          <h3 class="overlay-title">Breakout</h3>
-          <p class="overlay-subtitle">Destruye los ladrillos, atrapa los poderes y supera cada nivel</p>
-          <button class="overlay-play-btn" type="button" @click.stop="startGame">
-            <IconPlay class="play-svg" /> JUGAR
-          </button>
-          <div class="overlay-hint">
-            <span>Arrastra el dedo, usa el ratón o teclas ⬅️ ➡️</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Overlay de Pausa -->
-      <div v-if="gameStatus === 'paused'" class="canvas-overlay" @click="togglePause">
-        <div class="overlay-card">
-          <h3 class="overlay-title">PAUSA</h3>
-          <p class="overlay-subtitle">Puntuación actual: {{ scores.current }}</p>
-          <button class="overlay-play-btn" type="button" @click.stop="togglePause">
-            <IconPlay class="play-svg" /> REANUDAR
-          </button>
-          <div class="overlay-hint">
-            <span>Presiona Espacio o toca para continuar</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Overlay de Nivel Superado -->
-      <div v-if="gameStatus === 'level_cleared'" class="canvas-overlay">
-        <div class="overlay-card cleared-card">
-          <h3 class="overlay-title">¡NIVEL {{ scores.level }} SUPERADO!</h3>
-          <p class="overlay-subtitle">¡Excelente puntería!</p>
-          <div class="level-bonus">+500 PTS BONUS</div>
-        </div>
-      </div>
-
-      <!-- Overlay de Game Over -->
-      <div v-if="gameStatus === 'gameover'" class="canvas-overlay">
-        <div class="overlay-card gameover-card">
-          <div class="gameover-skull">💀</div>
-          <h3 class="overlay-title">¡PARTIDA TERMINADA!</h3>
-          <div v-if="isNewHighScore" class="record-badge">
-            <IconTrophy class="trophy-badge-icon" /> ¡NUEVO RÉCORD!
-          </div>
-          <div class="final-stats">
-            <div class="final-stat-item">
-              <span class="stat-label">Puntaje</span>
-              <span class="stat-num">{{ scores.current }}</span>
-            </div>
-            <div class="final-stat-item">
-              <span class="stat-label">Nivel</span>
-              <span class="stat-num">{{ scores.level }}</span>
-            </div>
-            <div class="final-stat-item">
-              <span class="stat-label">Récord</span>
-              <span class="stat-num">{{ scores.high }}</span>
+          <!-- Overlay de Inicio (Idle) -->
+          <div v-if="gameStatus === 'idle'" class="canvas-overlay" @click="startGame">
+            <div class="overlay-card">
+              <h3 class="overlay-title">Breakout</h3>
+              <p class="overlay-subtitle">Destruye los ladrillos, atrapa los poderes y supera cada nivel</p>
+              <button class="overlay-play-btn" type="button" @click.stop="startGame">
+                <IconPlay class="play-svg" /> JUGAR
+              </button>
+              <div class="overlay-hint">
+                <span>Arrastra el dedo, usa el ratón o teclas ⬅️ ➡️</span>
+              </div>
             </div>
           </div>
-          <button class="overlay-play-btn retry-btn" type="button" @click="startGame">
-            <IconRefresh class="play-svg" /> VOLVER A INTENTAR
-          </button>
+
+          <!-- Overlay de Pausa -->
+          <div v-if="gameStatus === 'paused'" class="canvas-overlay" @click="togglePause">
+            <div class="overlay-card">
+              <h3 class="overlay-title">PAUSA</h3>
+              <p class="overlay-subtitle">Puntuación actual: {{ scores.current }}</p>
+              <button class="overlay-play-btn" type="button" @click.stop="togglePause">
+                <IconPlay class="play-svg" /> REANUDAR
+              </button>
+              <div class="overlay-hint">
+                <span>Presiona Espacio o toca para continuar</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overlay de Nivel Superado -->
+          <div v-if="gameStatus === 'level_cleared'" class="canvas-overlay">
+            <div class="overlay-card cleared-card">
+              <h3 class="overlay-title">¡NIVEL {{ scores.level }} SUPERADO!</h3>
+              <p class="overlay-subtitle">¡Excelente puntería!</p>
+              <div class="level-bonus">+500 PTS BONUS</div>
+            </div>
+          </div>
+
+          <!-- Overlay de Game Over -->
+          <div v-if="gameStatus === 'gameover'" class="canvas-overlay">
+            <div class="overlay-card gameover-card">
+              <div class="gameover-skull">💀</div>
+              <h3 class="overlay-title">¡PARTIDA TERMINADA!</h3>
+              <div v-if="isNewHighScore" class="record-badge">
+                <IconTrophy class="trophy-badge-icon" /> ¡NUEVO RÉCORD!
+              </div>
+              <div class="final-stats">
+                <div class="final-stat-item">
+                  <span class="stat-label">Puntaje</span>
+                  <span class="stat-num">{{ scores.current }}</span>
+                </div>
+                <div class="final-stat-item">
+                  <span class="stat-label">Nivel</span>
+                  <span class="stat-num">{{ scores.level }}</span>
+                </div>
+                <div class="final-stat-item">
+                  <span class="stat-label">Récord</span>
+                  <span class="stat-num">{{ scores.high }}</span>
+                </div>
+              </div>
+              <button class="overlay-play-btn retry-btn" type="button" @click="startGame">
+                <IconRefresh class="play-svg" /> VOLVER A INTENTAR
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Controles táctiles en pantalla para móviles -->
-    <div class="touch-controls" aria-label="Controles táctiles de la paleta">
-      <button
-        type="button"
-        class="touch-btn touch-left"
-        aria-label="Mover a la izquierda"
-        @touchstart.prevent="handleButtonMoveStart('left')"
-        @touchend.prevent="handleButtonMoveEnd('left')"
-        @mousedown="handleButtonMoveStart('left')"
-        @mouseup="handleButtonMoveEnd('left')"
-        @mouseleave="handleButtonMoveEnd('left')"
-      >
-        ◀
-      </button>
+      <!-- Columna Lateral en Desktop: Marcador, Ajustes, Acciones y Atajos -->
+      <aside class="sidebar-column">
+        <!-- Marcador de estadísticas -->
+        <section class="scoreboard" aria-label="Marcador de Breakout">
+          <div class="score-card current-score">
+            <span class="card-label">Puntos</span>
+            <span class="card-value">{{ scores.current }}</span>
+          </div>
+          <div class="score-card lives-card">
+            <span class="card-label">Vidas</span>
+            <div class="lives-icons">
+              <IconHeart
+                v-for="i in 5"
+                :key="i"
+                class="heart-icon"
+                :class="{ active: i <= scores.lives }"
+              />
+            </div>
+          </div>
+          <div class="score-card high-score" :class="{ 'is-new-record': isNewHighScore }">
+            <span class="card-label">
+              <IconTrophy class="trophy-icon" /> Récord
+            </span>
+            <span class="card-value">{{ scores.high }}</span>
+          </div>
+          <div class="score-card level-card">
+            <span class="card-label">Nivel</span>
+            <span class="card-value">{{ scores.level }}</span>
+          </div>
+        </section>
 
-      <button
-        type="button"
-        class="touch-btn touch-action"
-        aria-label="Lanzar pelota o Pausa"
-        @click="balls.some(b => b.stuckToPaddle) ? launchBall() : togglePause()"
-      >
-        <span v-if="balls.some(b => b.stuckToPaddle)">🚀 LANZAR</span>
-        <span v-else-if="gameStatus === 'playing'">⏸️ PAUSA</span>
-        <span v-else>▶️ JUGAR</span>
-      </button>
-
-      <button
-        type="button"
-        class="touch-btn touch-right"
-        aria-label="Mover a la derecha"
-        @touchstart.prevent="handleButtonMoveStart('right')"
-        @touchend.prevent="handleButtonMoveEnd('right')"
-        @mousedown="handleButtonMoveStart('right')"
-        @mouseup="handleButtonMoveEnd('right')"
-        @mouseleave="handleButtonMoveEnd('right')"
-      >
-        ▶
-      </button>
-    </div>
-
-    <!-- Botonera de acciones -->
-    <footer class="game-controls">
-      <button class="btn btn-primary" type="button" @click="startGame">
-        <IconRefresh class="btn-icon" /> {{ gameStatus === 'idle' ? 'Iniciar Partida' : 'Reiniciar Partida' }}
-      </button>
-      <button
-        class="btn btn-secondary"
-        type="button"
-        :disabled="gameStatus === 'idle' || gameStatus === 'gameover'"
-        @click="togglePause"
-      >
-        <IconPlay v-if="gameStatus === 'paused'" class="btn-icon" />
-        <IconPause v-else class="btn-icon" />
-        {{ gameStatus === 'paused' ? 'Reanudar' : 'Pausar' }}
-      </button>
-      <button
-        class="btn btn-secondary"
-        type="button"
-        :disabled="scores.high === 0"
-        title="Restablecer récord a 0"
-        @click="resetHighscore"
-      >
-        <IconTrash class="btn-icon" /> Borrar Récord
-      </button>
-    </footer>
-
-    <!-- Ayuda de teclado -->
-    <div class="keyboard-help">
-      <span class="key-badge">⬅️ ➡️</span> / <span class="key-badge">A D</span> Mover &bull;
-      <span class="key-badge">Espacio</span> Lanzar / Pausa &bull;
-      <span class="key-badge">R</span> Reiniciar
+        <!-- Botonera de acciones -->
+        <footer class="game-controls">
+          <button class="btn btn-primary" type="button" @click="startGame">
+            <IconRefresh class="btn-icon" /> {{ gameStatus === 'idle' ? 'Iniciar Partida' : 'Reiniciar Partida' }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            type="button"
+            :disabled="gameStatus === 'idle' || gameStatus === 'gameover'"
+            @click="togglePause"
+          >
+            <IconPlay v-if="gameStatus === 'paused'" class="btn-icon" />
+            <IconPause v-else class="btn-icon" />
+            {{ gameStatus === 'paused' ? 'Reanudar' : 'Pausar' }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            type="button"
+            :disabled="scores.high === 0"
+            title="Restablecer récord a 0"
+            @click="resetHighscore"
+          >
+            <IconTrash class="btn-icon" /> Borrar Récord
+          </button>
+        </footer>
+      </aside>
     </div>
   </div>
 </template>
@@ -1560,7 +1423,7 @@ onUnmounted(() => {
 <style scoped>
 .breakout-container {
   width: 100%;
-  max-width: 620px;
+  max-width: 980px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -1573,6 +1436,48 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+/* Layout de 2 Columnas en Desktop */
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(420px, 560px) 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.canvas-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.sidebar-column .scoreboard {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+
+.sidebar-column .game-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sidebar-column .game-controls .btn {
+  width: 100%;
 }
 
 .game-title {
@@ -1714,115 +1619,6 @@ onUnmounted(() => {
 .heart-icon.active {
   color: #ef4444;
   filter: drop-shadow(0 1px 2px rgba(239, 68, 68, 0.4));
-}
-
-/* Ajustes de configuración (Velocidad) */
-.settings-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  background: #ffffff;
-  padding: 0.6rem 0.85rem;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.setting-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.group-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.pill-buttons {
-  display: inline-flex;
-  background: #f1f5f9;
-  border-radius: 8px;
-  padding: 2px;
-}
-
-.pill-btn {
-  background: transparent;
-  border: none;
-  padding: 0.3rem 0.65rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.pill-btn:hover {
-  color: #0f172a;
-}
-
-.pill-btn.active {
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Banner de estado */
-.status-banner {
-  text-align: center;
-  padding: 0.65rem 0.9rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.92rem;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  min-height: 44px;
-}
-
-.status-banner.status-playing {
-  background: #f0f9ff;
-  border-color: #7dd3fc;
-  color: #0369a1;
-}
-
-.status-banner.status-cleared {
-  background: #f0fdf4;
-  border-color: #86efac;
-  color: #15803d;
-}
-
-.status-banner.status-paused {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #92400e;
-}
-
-.status-banner.status-over {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: #991b1b;
-}
-
-.power-active {
-  color: #059669;
-  font-weight: 700;
-}
-
-.win-text {
-  color: #15803d;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
 }
 
 /* Canvas y Contenedor */
@@ -1997,57 +1793,6 @@ onUnmounted(() => {
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
 }
 
-/* Controles táctiles en pantalla */
-.touch-controls {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.touch-btn {
-  flex: 1;
-  max-width: 120px;
-  height: 48px;
-  background: #ffffff;
-  border: 2px solid #cbd5e1;
-  border-radius: 12px;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  touch-action: manipulation;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.12s ease;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.touch-btn:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  color: #0f172a;
-}
-
-.touch-btn:active {
-  background: #e2e8f0;
-  transform: scale(0.95);
-}
-
-.touch-btn.touch-action {
-  flex: 1.4;
-  font-size: 0.88rem;
-  background: #f0f9ff;
-  border-color: #7dd3fc;
-  color: #0284c7;
-}
-
 /* Controles inferiores */
 .game-controls {
   display: flex;
@@ -2096,28 +1841,24 @@ onUnmounted(() => {
   color: #1e293b;
 }
 
-/* Ayuda de teclado */
-.keyboard-help {
-  text-align: center;
-  font-size: 0.78rem;
-  color: #64748b;
-}
-
-.key-badge {
-  display: inline-block;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  padding: 1px 5px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #334155;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-}
-
-@media (max-width: 540px) {
+@media (max-width: 820px) {
   .breakout-container {
     gap: 0.65rem;
+    max-width: 620px;
+  }
+
+  /* Desmontar columnas de desktop para flujo vertical en teléfono */
+  .game-layout,
+  .canvas-column,
+  .sidebar-column {
+    display: contents;
+  }
+
+  .sidebar-column {
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
   }
 
   /* Header en 1 sola fila */
@@ -2135,6 +1876,7 @@ onUnmounted(() => {
 
   /* Marcador en 1 sola fila */
   .scoreboard {
+    order: 1;
     grid-template-columns: repeat(4, 1fr);
     gap: 0.35rem;
   }
@@ -2157,53 +1899,22 @@ onUnmounted(() => {
     font-size: 0.95rem;
   }
 
-  /* Barra de velocidad compacta */
-  .settings-bar {
-    padding: 0.35rem 0.5rem;
-    justify-content: center;
-  }
-  .group-title {
-    font-size: 0.72rem;
-  }
-  .pill-btn {
-    padding: 0.22rem 0.5rem;
-    font-size: 0.7rem;
-  }
-
-  /* Banner de estado compacto */
-  .status-banner {
-    padding: 0.4rem 0.6rem;
-    min-height: 38px;
-    font-size: 0.82rem;
-  }
-
-  /* Controles táctiles bajo el canvas */
-  .touch-controls {
-    gap: 0.45rem;
-  }
-  .touch-btn {
-    height: 44px;
-    font-size: 1.05rem;
-    border-radius: 10px;
-  }
-  .touch-btn.touch-action {
-    font-size: 0.8rem;
+  /* Canvas wrapper */
+  .canvas-wrapper {
+    order: 2;
   }
 
   /* Botones de acción en una sola fila horizontal */
   .game-controls {
+    order: 3;
     flex-direction: row;
     gap: 0.4rem;
   }
-  .btn {
+  .game-controls .btn {
+    flex: 1;
     padding: 0.55rem 0.5rem;
     font-size: 0.78rem;
     gap: 0.3rem;
-  }
-
-  /* Ocultar texto de ayuda de teclado en pantallas táctiles */
-  .keyboard-help {
-    display: none;
   }
 }
 </style>

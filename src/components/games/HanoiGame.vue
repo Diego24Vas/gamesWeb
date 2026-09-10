@@ -573,27 +573,6 @@ const getDiskStyle = (diskSize: number) => {
       </div>
     </div>
 
-    <!-- Banner de estado / Instrucciones (Altura fija y texto conciso para evitar saltos) -->
-    <div
-      class="status-banner"
-      :class="{
-        'has-selection': selectedPeg !== null,
-        'is-solving': isSolving
-      }"
-      role="status"
-    >
-      <template v-if="isSolving">
-        <span class="pulse-indicator"></span>
-        <span class="banner-text">Resolviendo paso a paso ({{ moves }} / {{ minMoves }})...</span>
-      </template>
-      <template v-else-if="selectedPeg !== null">
-        <span class="banner-text">Disco <strong>#{{ liftedDisk }}</strong> ({{ TOWER_NAMES[selectedPeg].label }}). Elige torre destino.</span>
-      </template>
-      <template v-else>
-        <span class="banner-text">Toca una torre para levantar el disco superior</span>
-      </template>
-    </div>
-
     <!-- Tablero de Torres de Hanói (Diseño claro, táctil y 100% estático) -->
     <main class="stage-container" aria-label="Tablero de Torres de Hanói">
       <div class="towers-arena">
@@ -973,66 +952,6 @@ const getDiskStyle = (diskSize: number) => {
 
 .hint-text {
   color: #64748b;
-}
-
-/* Banner de estado interactivo (Altura fija estricta para evitar cualquier salto del tablero) */
-.status-banner {
-  text-align: center;
-  padding: 0 0.85rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  height: 44px;
-  min-height: 44px;
-  max-height: 44px;
-  box-sizing: border-box;
-  overflow: hidden;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.banner-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: inline-block;
-  max-width: 100%;
-}
-
-.status-banner strong {
-  color: #2563eb;
-}
-
-.status-banner.has-selection {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #1e40af;
-  font-weight: 500;
-}
-
-.status-banner.is-solving {
-  background: #f0fdf4;
-  border-color: #86efac;
-  color: #166534;
-}
-
-.pulse-indicator {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-  animation: pulseDot 1s infinite alternate;
-}
-
-@keyframes pulseDot {
-  from { opacity: 0.5; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1.2); }
 }
 
 /* Tablero de Torres de Hanói (Completamente estático) */
@@ -1521,14 +1440,6 @@ const getDiskStyle = (diskSize: number) => {
 
   .guide-hint {
     display: none;
-  }
-
-  .status-banner {
-    height: 36px;
-    min-height: 36px;
-    max-height: 36px;
-    padding: 0 0.5rem;
-    font-size: 0.78rem;
   }
 
   .stage-container {
