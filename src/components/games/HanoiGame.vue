@@ -1395,23 +1395,34 @@ const getDiskStyle = (diskSize: number) => {
 @media (max-width: 540px) {
   .hanoi-container {
     gap: 0.45rem;
+    margin: auto auto;
+    align-self: center;
   }
 
   .game-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     gap: 0.35rem;
-  }
-
-  .game-title {
-    font-size: 1.15rem;
-    flex: 1;
+    width: 100%;
   }
 
   .btn-back {
+    justify-self: start;
     padding: 0.35rem 0.6rem;
     font-size: 0.78rem;
   }
 
+  .game-title {
+    justify-self: center;
+    font-size: 1.15rem;
+    white-space: nowrap;
+    margin: 0;
+    text-align: center;
+  }
+
   .btn-sound {
+    justify-self: end;
     width: 32px;
     height: 32px;
   }

@@ -489,23 +489,35 @@ const isWinningCell = (index: number): boolean => {
   color: #1e293b;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .tictactoe-container {
-    gap: 0.75rem;
+    gap: 0.85rem;
+    margin: auto auto;
+    align-self: center;
+    max-width: 360px;
   }
   .game-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     gap: 0.35rem;
-  }
-  .header-spacer {
-    width: 60px;
+    width: 100%;
   }
   .btn-back {
+    justify-self: start;
     padding: 0.4rem 0.65rem;
     font-size: 0.8rem;
   }
   .game-title {
+    justify-self: center;
     font-size: 1.2rem;
-    flex: 1;
+    white-space: nowrap;
+    margin: 0;
+    text-align: center;
+  }
+  .header-spacer {
+    justify-self: end;
+    width: auto;
   }
   .scoreboard {
     gap: 0.4rem;
@@ -526,7 +538,7 @@ const isWinningCell = (index: number): boolean => {
     font-size: 0.88rem;
   }
   .board {
-    max-width: 275px;
+    max-width: 290px;
     gap: 8px;
     padding: 8px;
     border-radius: 14px;

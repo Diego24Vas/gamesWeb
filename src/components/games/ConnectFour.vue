@@ -797,7 +797,10 @@ const isWinningCell = (r: number, c: number): boolean => {
 @media (max-width: 820px) {
   .c4-container {
     gap: 0.65rem;
-    max-width: 580px;
+    max-width: 480px;
+    margin: auto auto;
+    align-self: center;
+    width: 100%;
   }
 
   /* Desmontar columnas de desktop para flujo vertical en teléfono */
@@ -815,23 +818,35 @@ const isWinningCell = (r: number, c: number): boolean => {
   }
 
   .game-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     gap: 0.35rem;
-  }
-  .header-spacer {
-    width: 60px;
+    width: 100%;
   }
   .btn-back {
+    justify-self: start;
     padding: 0.4rem 0.65rem;
     font-size: 0.8rem;
   }
   .game-title {
+    justify-self: center;
     font-size: 1.2rem;
-    flex: 1;
+    white-space: nowrap;
+    margin: 0;
+    text-align: center;
+  }
+  .header-spacer {
+    justify-self: end;
+    width: auto;
   }
 
   .scoreboard {
     order: 1;
     gap: 0.4rem;
+    max-width: 440px;
+    margin: 0 auto;
+    width: 100%;
   }
   .score-card {
     padding: 0.45rem 0.3rem;
@@ -849,6 +864,10 @@ const isWinningCell = (r: number, c: number): boolean => {
     min-height: 42px;
     padding: 0.4rem 0.6rem;
     font-size: 0.88rem;
+    max-width: 440px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .drop-indicators {
@@ -856,6 +875,10 @@ const isWinningCell = (r: number, c: number): boolean => {
     gap: 4px;
     padding: 0 6px;
     height: 28px;
+    max-width: 440px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
   }
   .preview-token {
     width: 20px;
@@ -866,6 +889,10 @@ const isWinningCell = (r: number, c: number): boolean => {
     order: 4;
     padding: 6px;
     border-radius: 14px;
+    max-width: 440px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
   }
   .grid-layer,
   .grid-row,
@@ -877,6 +904,9 @@ const isWinningCell = (r: number, c: number): boolean => {
     order: 5;
     flex-direction: row;
     gap: 0.4rem;
+    max-width: 440px;
+    margin: 0 auto;
+    width: 100%;
   }
   .game-controls .btn {
     flex: 1;

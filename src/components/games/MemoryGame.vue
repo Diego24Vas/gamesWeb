@@ -818,27 +818,41 @@ onUnmounted(() => {
   color: #1e293b;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .memory-container {
-    gap: 0.6rem;
-    max-width: 100%;
+    gap: 0.65rem;
+    max-width: 420px;
+    margin: auto auto;
+    align-self: center;
+    width: 100%;
     padding: 0 0.25rem;
+    box-sizing: border-box;
   }
 
   .game-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     gap: 0.35rem;
+    width: 100%;
   }
 
   .btn-back {
+    justify-self: start;
     padding: 0.4rem 0.65rem;
     font-size: 0.8rem;
   }
 
   .game-title {
+    justify-self: center;
     font-size: 1.15rem;
+    white-space: nowrap;
+    margin: 0;
+    text-align: center;
   }
 
   .btn-sound {
+    justify-self: end;
     width: 34px;
     height: 34px;
   }
@@ -846,6 +860,9 @@ onUnmounted(() => {
   /* Marcador con selectores correctos */
   .stats-bar {
     gap: 0.35rem;
+    max-width: 380px;
+    margin: 0 auto;
+    width: 100%;
   }
 
   .stat-card {
@@ -871,12 +888,18 @@ onUnmounted(() => {
   .record-badge {
     padding: 0.3rem 0.5rem;
     font-size: 0.74rem;
+    max-width: 380px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   /* Cuadrícula de cartas que llena armónicamente el ancho del contenedor */
   .cards-grid {
     gap: 6px;
     width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
   }
 
   .card-inner,
@@ -896,6 +919,10 @@ onUnmounted(() => {
 
   .game-controls {
     margin-top: 0.15rem;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
   }
 
   .btn {
