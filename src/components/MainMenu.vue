@@ -8,8 +8,7 @@ import {
   IconBreakout,
   IconFlappyBird,
   IconHanoi,
-  IconWordle,
-  IconArrowRight
+  IconWordle
 } from './icons';
 
 const emit = defineEmits<{
@@ -19,40 +18,33 @@ const emit = defineEmits<{
 interface GameItem {
   id: ViewState;
   title: string;
-  subtitle: string;
 }
 
 // Juegos de 1 Jugador
 const singlePlayerGames: GameItem[] = [
   {
     id: 'snake',
-    title: 'Snake (La Culebrita)',
-    subtitle: 'Come manzanas y esquiva tu cola'
+    title: 'Snake'
   },
   {
     id: 'breakout',
-    title: 'Breakout / Arkanoid',
-    subtitle: 'Destruye ladrillos y atrapa poderes'
+    title: 'Breakout'
   },
   {
     id: 'flappy',
-    title: 'Flappy Bird',
-    subtitle: 'Aletea y esquiva las tuberías'
+    title: 'Flappy Bird'
   },
   {
     id: 'hanoi',
-    title: 'Torres de Hanói',
-    subtitle: 'Resuelve el clásico rompecabezas'
+    title: 'Torres de Hanói'
   },
   {
     id: 'wordle',
-    title: 'Wordle (Palabra de 5 Letras)',
-    subtitle: 'Adivina la palabra oculta en 6 intentos'
+    title: 'Wordle'
   },
   {
     id: 'memory',
-    title: 'Juego de Memoria',
-    subtitle: 'Encuentra las parejas de cartas'
+    title: 'Juego de Memoria'
   }
 ];
 
@@ -60,13 +52,11 @@ const singlePlayerGames: GameItem[] = [
 const twoPlayerGames: GameItem[] = [
   {
     id: 'tictactoe',
-    title: 'Tres en Línea',
-    subtitle: 'Clásico duelo táctico 1 vs 1'
+    title: 'Tres en Línea'
   },
   {
     id: 'connect4',
-    title: 'Conecta 4',
-    subtitle: 'Alinea 4 fichas de tu color'
+    title: 'Conecta 4'
   }
 ];
 
@@ -77,11 +67,9 @@ const handleSelectGame = (gameId: ViewState) => {
 
 <template>
   <section class="main-menu">
-
-
     <!-- SECCIÓN: 1 JUGADOR -->
     <section class="category-section">
-      <h3 class="category-title">1 Jugador</h3>
+      <h2 class="category-title">1 Jugador</h2>
 
       <div class="games-grid">
         <button
@@ -101,21 +89,14 @@ const handleSelectGame = (gameId: ViewState) => {
             <IconCardsStack v-else-if="game.id === 'memory'" />
           </div>
 
-          <div class="card-text">
-            <span class="card-title">{{ game.title }}</span>
-            <span class="card-subtitle">{{ game.subtitle }}</span>
-          </div>
-
-          <div class="card-arrow" aria-hidden="true">
-            <IconArrowRight class="arrow-svg" />
-          </div>
+          <span class="card-title">{{ game.title }}</span>
         </button>
       </div>
     </section>
 
     <!-- SECCIÓN: 2 JUGADORES -->
     <section class="category-section">
-      <h3 class="category-title">2 Jugadores</h3>
+      <h2 class="category-title">2 Jugadores</h2>
 
       <div class="games-grid">
         <button
@@ -131,14 +112,7 @@ const handleSelectGame = (gameId: ViewState) => {
             <IconConnect4Grid v-else-if="game.id === 'connect4'" />
           </div>
 
-          <div class="card-text">
-            <span class="card-title">{{ game.title }}</span>
-            <span class="card-subtitle">{{ game.subtitle }}</span>
-          </div>
-
-          <div class="card-arrow" aria-hidden="true">
-            <IconArrowRight class="arrow-svg" />
-          </div>
+          <span class="card-title">{{ game.title }}</span>
         </button>
       </div>
     </section>
@@ -148,79 +122,66 @@ const handleSelectGame = (gameId: ViewState) => {
 <style scoped>
 .main-menu {
   width: 100%;
-  max-width: 860px;
+  max-width: 1040px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 2.75rem;
 }
 
-.menu-header {
-  text-align: center;
-}
-
-.menu-title {
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 0.35rem;
-  letter-spacing: -0.02em;
-}
-
-.menu-subtitle {
-  font-size: 0.95rem;
-  color: #64748b;
-  margin: 0;
-}
-
-/* Categorías simples y limpias */
+/* Secciones de categorías */
 .category-section {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1.25rem;
 }
 
 .category-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #334155;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1e293b;
   margin: 0;
-  padding-bottom: 0.35rem;
+  padding-bottom: 0.65rem;
   border-bottom: 2px solid #e2e8f0;
+  letter-spacing: -0.01em;
 }
 
-/* Cuadrícula de tarjetas */
+/* Cuadrícula de recuadros */
 .games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.35rem;
   width: 100%;
 }
 
+/* Tarjeta / Recuadro de Juego */
 .game-card {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 1.4rem 1.15rem;
+  border-radius: 18px;
+  padding: 1.85rem 1.35rem;
   border: 2px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.85rem;
-  transition: all 0.2s ease;
+  gap: 1.15rem;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   outline: none;
   font-family: inherit;
   text-align: center;
   user-select: none;
   -webkit-user-select: none;
+  min-height: 165px;
 }
 
 .game-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: #3b82f6;
-  box-shadow: 0 8px 16px -2px rgba(59, 130, 246, 0.12);
+  box-shadow: 0 12px 24px -4px rgba(59, 130, 246, 0.14), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
 }
 
 .game-card:active {
@@ -228,133 +189,71 @@ const handleSelectGame = (gameId: ViewState) => {
 }
 
 .card-icon {
-  width: 54px;
-  height: 54px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease;
+  transition: transform 0.22s ease;
   flex-shrink: 0;
 }
 
 .game-card:hover .card-icon {
-  transform: scale(1.06);
-}
-
-.card-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  width: 100%;
+  transform: scale(1.08);
 }
 
 .card-title {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #0f172a;
+  line-height: 1.35;
   transition: color 0.2s ease;
+  word-break: break-word;
 }
 
 .game-card:hover .card-title {
   color: #2563eb;
 }
 
-.card-subtitle {
-  font-size: 0.8rem;
-  color: #64748b;
-  line-height: 1.3;
-}
-
-.card-arrow {
-  display: none;
-}
-
-/* Vista Mobile simplificada y cómoda */
-@media (max-width: 640px) {
+/* Pantallas medianas y móviles: Cuadrícula de 2 columnas de recuadros */
+@media (max-width: 680px) {
   .main-menu {
     gap: 1.25rem;
-  }
-
-  .menu-title {
-    font-size: 1.3rem;
-  }
-
-  .menu-subtitle {
-    font-size: 0.82rem;
-    margin-top: 0.15rem;
+    width: 100%;
   }
 
   .category-section {
-    gap: 0.6rem;
+    gap: 0.65rem;
   }
 
   .category-title {
-    font-size: 0.95rem;
-    padding-bottom: 0.25rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid #e2e8f0;
   }
 
   .games-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
 
   .game-card {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 0.75rem 0.85rem;
-    border-radius: 12px;
-    gap: 0.75rem;
-    text-align: left;
-  }
-
-  .game-card:hover {
-    transform: none;
-  }
-
-  .game-card:active {
-    background: #f8fafc;
-    transform: scale(0.985);
+    padding: 0.95rem 0.65rem;
+    border-radius: 14px;
+    gap: 0.55rem;
+    min-height: 95px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
   }
 
   .card-icon {
-    width: 42px;
-    height: 42px;
-  }
-
-  .card-text {
-    flex: 1;
-    min-width: 0;
-    gap: 0.15rem;
+    width: 44px;
+    height: 44px;
   }
 
   .card-title {
-    font-size: 0.92rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .card-subtitle {
-    font-size: 0.74rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .card-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-    font-size: 1rem;
-    flex-shrink: 0;
-  }
-
-  .arrow-svg {
-    width: 1.1rem;
-    height: 1.1rem;
+    font-size: 0.88rem;
+    line-height: 1.25;
   }
 }
 </style>

@@ -573,7 +573,7 @@ const getDiskStyle = (diskSize: number) => {
       </div>
     </div>
 
-    <!-- Banner de estado / Instrucciones -->
+    <!-- Banner de estado / Instrucciones (Altura fija y texto conciso para evitar saltos) -->
     <div
       class="status-banner"
       :class="{
@@ -584,17 +584,17 @@ const getDiskStyle = (diskSize: number) => {
     >
       <template v-if="isSolving">
         <span class="pulse-indicator"></span>
-        <span>Resolviendo paso a paso ({{ moves }} / {{ minMoves }})...</span>
+        <span class="banner-text">Resolviendo paso a paso ({{ moves }} / {{ minMoves }})...</span>
       </template>
       <template v-else-if="selectedPeg !== null">
-        <span>Disco <strong>#{{ liftedDisk }}</strong> seleccionado ({{ TOWER_NAMES[selectedPeg].label }}). Toca otra torre para colocarlo.</span>
+        <span class="banner-text">Disco <strong>#{{ liftedDisk }}</strong> ({{ TOWER_NAMES[selectedPeg].label }}). Elige torre destino.</span>
       </template>
       <template v-else>
-        <span>Toca una torre para levantar el disco superior</span>
+        <span class="banner-text">Toca una torre para levantar el disco superior</span>
       </template>
     </div>
 
-    <!-- Tablero de Torres de Hanói (Diseño claro y táctil) -->
+    <!-- Tablero de Torres de Hanói (Diseño claro, táctil y 100% estático) -->
     <main class="stage-container" aria-label="Tablero de Torres de Hanói">
       <div class="towers-arena">
         <!-- Plataforma base de madera clásica -->
@@ -614,7 +614,6 @@ const getDiskStyle = (diskSize: number) => {
               isValidMove(selectedPeg, pegIndex)
           }"
           role="button"
-          tabindex="0"
           :aria-label="`${TOWER_NAMES[pegIndex].label}: ${pegDisks.length} discos`"
           @click="handlePegClick(pegIndex)"
         >
@@ -976,21 +975,33 @@ const getDiskStyle = (diskSize: number) => {
   color: #64748b;
 }
 
-/* Banner de estado interactivo */
+/* Banner de estado interactivo (Altura fija estricta para evitar cualquier salto del tablero) */
 .status-banner {
   text-align: center;
-  padding: 0.65rem 0.9rem;
+  padding: 0 0.85rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #334155;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+  height: 44px;
   min-height: 44px;
-  transition: all 0.2s ease;
+  max-height: 44px;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.banner-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
 }
 
 .status-banner strong {
@@ -1024,7 +1035,7 @@ const getDiskStyle = (diskSize: number) => {
   to { opacity: 1; transform: scale(1.2); }
 }
 
-/* Tablero de Torres de Hanói */
+/* Tablero de Torres de Hanói (Completamente estático) */
 .stage-container {
   position: relative;
   background: #ffffff;
@@ -1032,6 +1043,10 @@ const getDiskStyle = (diskSize: number) => {
   border-radius: 16px;
   padding: 1.25rem 0.75rem 0.75rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .towers-arena {
@@ -1070,6 +1085,10 @@ const getDiskStyle = (diskSize: number) => {
   border-radius: 12px;
   transition: background-color 0.2s ease;
   z-index: 2;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tower-column:hover {
@@ -1088,15 +1107,10 @@ const getDiskStyle = (diskSize: number) => {
   z-index: 10;
 }
 
+/* Disco levantado estático (sin balanceo ni saltos) */
 .lifted-disk {
   transform: translateY(-8px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
-  animation: gentleFloat 1.2s ease-in-out infinite alternate;
-}
-
-@keyframes gentleFloat {
-  from { transform: translateY(-6px); }
-  to { transform: translateY(-12px); }
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18) !important;
 }
 
 /* Poste vertical de acero */
@@ -1189,7 +1203,7 @@ const getDiskStyle = (diskSize: number) => {
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   z-index: 5;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pedestal-name {
@@ -1461,7 +1475,7 @@ const getDiskStyle = (diskSize: number) => {
 /* Responsividad para móviles */
 @media (max-width: 540px) {
   .hanoi-container {
-    gap: 0.65rem;
+    gap: 0.45rem;
   }
 
   .game-header {
@@ -1469,40 +1483,40 @@ const getDiskStyle = (diskSize: number) => {
   }
 
   .game-title {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     flex: 1;
   }
 
   .btn-back {
-    padding: 0.4rem 0.65rem;
-    font-size: 0.8rem;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.78rem;
   }
 
   .btn-sound {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
   }
 
   .scoreboard {
-    gap: 0.35rem;
+    gap: 0.3rem;
   }
 
   .score-card {
-    padding: 0.45rem 0.2rem;
-    border-radius: 10px;
+    padding: 0.35rem 0.15rem;
+    border-radius: 9px;
   }
 
   .card-label {
-    font-size: 0.62rem;
+    font-size: 0.6rem;
   }
 
   .card-value {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
   }
 
   .settings-bar {
-    padding: 0.4rem 0.6rem;
-    gap: 0.4rem;
+    padding: 0.35rem 0.5rem;
+    gap: 0.35rem;
   }
 
   .guide-hint {
@@ -1510,35 +1524,37 @@ const getDiskStyle = (diskSize: number) => {
   }
 
   .status-banner {
-    min-height: 38px;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.8rem;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    padding: 0 0.5rem;
+    font-size: 0.78rem;
   }
 
   .stage-container {
-    padding: 0.85rem 0.4rem 0.5rem;
+    padding: 0.65rem 0.4rem 0.45rem;
     border-radius: 14px;
   }
 
   .towers-arena {
-    min-height: 220px;
+    min-height: 195px;
     gap: 0.35rem;
   }
 
   .tower-column {
-    height: 220px;
-    padding-bottom: 30px;
+    height: 195px;
+    padding-bottom: 28px;
   }
 
   .arena-base-floor {
-    bottom: 24px;
-    height: 8px;
+    bottom: 22px;
+    height: 7px;
   }
 
   .tower-rod {
-    bottom: 30px;
+    bottom: 28px;
     width: 8px;
-    height: 140px;
+    height: 125px;
   }
 
   .rod-cap {

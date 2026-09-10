@@ -31,7 +31,6 @@ const navigateToMenu = () => {
         <h1 class="brand-title" @click="navigateToMenu">
           <IconGamepad class="brand-icon" /> MiniJuegos
         </h1>
-        <p class="brand-subtitle"></p>
       </div>
     </header>
 
@@ -115,67 +114,62 @@ const navigateToMenu = () => {
 .app-header {
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  padding: 1.5rem 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  padding: 2.25rem 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
 }
 
 .header-inner {
-  max-width: 960px;
+  max-width: 1040px;
   margin: 0 auto;
   text-align: center;
 }
 
 .brand-title {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.95rem;
   font-weight: 800;
   color: #0f172a;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: opacity 0.2s ease;
+  gap: 0.65rem;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .brand-title:hover {
   opacity: 0.85;
+  transform: scale(1.01);
 }
 
 .brand-icon {
-  font-size: 1.8rem;
+  font-size: 2rem;
   color: #2563eb;
-}
-
-.brand-subtitle {
-  margin: 0.25rem 0 0;
-  font-size: 0.95rem;
-  color: #64748b;
 }
 
 .app-main {
   flex: 1;
-  max-width: 960px;
+  max-width: 1040px;
   width: 100%;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2.75rem 1.5rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .app-footer {
   text-align: center;
-  padding: 1.15rem 1rem;
+  padding: 2.25rem 1.5rem;
   border-top: 1px solid #e2e8f0;
   background: #ffffff;
   color: #64748b;
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   margin-top: auto;
 }
 
 .footer-inner {
-  max-width: 960px;
+  max-width: 1040px;
   margin: 0 auto;
 }
 
@@ -183,6 +177,7 @@ const navigateToMenu = () => {
   margin: 0;
   font-weight: 500;
   color: #64748b;
+  line-height: 1.6;
 }
 
 .footer-link {
@@ -217,21 +212,29 @@ const navigateToMenu = () => {
 
 @media (max-width: 640px) {
   .app-header {
-    padding: 0.65rem 0.75rem;
+    padding: 0.75rem 1rem;
   }
+
   .brand-title {
-    font-size: 1.25rem;
-    gap: 0.35rem;
+    font-size: 1.3rem;
+    gap: 0.45rem;
   }
+
   .brand-icon {
-    font-size: 1.35rem;
+    font-size: 1.4rem;
   }
+
   .app-main {
-    padding: 0.65rem 0.5rem;
+    padding: 0.85rem 0.65rem;
   }
+
   .app-footer {
-    padding: 0.65rem 0.75rem;
-    font-size: 0.8rem;
+    padding: 0.85rem 1rem;
+    font-size: 0.82rem;
+  }
+
+  .footer-text {
+    line-height: 1.3;
   }
 }
 </style>

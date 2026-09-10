@@ -6,7 +6,6 @@ import {
   IconRefresh,
   IconTrash,
   IconTrophy,
-  IconSparkles,
   IconPlay,
   IconPause,
   IconVolume,
@@ -1067,43 +1066,13 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Banner de estado -->
-    <div
-      class="status-banner"
-      :class="{
-        'status-playing': gameStatus === 'playing',
-        'status-paused': gameStatus === 'paused',
-        'status-over': gameStatus === 'gameover'
-      }"
-      role="status"
-    >
-      <template v-if="gameStatus === 'idle'">
-        <span>🎮 Presiona <strong>Iniciar</strong> o usa las <strong>flechas</strong> para comenzar</span>
-      </template>
-      <template v-else-if="gameStatus === 'playing'">
-        <span v-if="bonusFood" class="bonus-alert">
-          <IconSparkles class="bonus-icon" /> ¡Apareció la <strong>Estrella Bonus</strong>! (+{{ Math.round(35 * DIFFICULTY_MULTIPLIERS[difficulty]) }} pts)
-        </span>
-        <span v-else>🟢 ¡Come manzanas rojas y esquiva {{ mode === 'classic' ? 'los bordes y ' : '' }}tu cuerpo!</span>
-      </template>
-      <template v-else-if="gameStatus === 'paused'">
-        <IconPause class="status-icon" />
-        <span>Juego pausado. Pulsa <strong>Espacio</strong> para continuar</span>
-      </template>
-      <template v-else-if="gameStatus === 'gameover'">
-        <span v-if="isNewHighScore" class="win-text">
-          <IconTrophy class="status-icon trophy" /> ¡Felicitaciones! ¡Nuevo récord personal: <strong>{{ scores.current }}</strong> pts!
-        </span>
-        <span v-else>💀 ¡Fin de la partida! Puntuación obtenida: <strong>{{ scores.current }}</strong></span>
-      </template>
-    </div>
-
     <!-- Tablero de Juego con Canvas y Overlays -->
     <div class="canvas-wrapper">
       <canvas
         ref="canvasRef"
         class="snake-canvas"
         @touchstart.passive="handleTouchStart"
+        @touchmove.prevent
         @touchend.passive="handleTouchEnd"
       ></canvas>
 
@@ -1354,18 +1323,8 @@ onUnmounted(() => {
 }
 
 .score-card.high-score.is-new-record {
-  animation: pulse-border 1.2s infinite ease-in-out;
   border-color: #eab308;
-  box-shadow: 0 0 12px rgba(234, 179, 8, 0.35);
-}
-
-@keyframes pulse-border {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
 }
 
 .trophy-icon {
@@ -1443,57 +1402,6 @@ onUnmounted(() => {
   background: #ffffff;
   color: #0f172a;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Banner de estado */
-.status-banner {
-  text-align: center;
-  padding: 0.65rem 0.9rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.92rem;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  min-height: 44px;
-}
-
-.status-banner.status-playing {
-  background: #f0fdf4;
-  border-color: #86efac;
-  color: #166534;
-}
-
-.status-banner.status-paused {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #92400e;
-}
-
-.status-banner.status-over {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: #991b1b;
-}
-
-.bonus-alert {
-  color: #b45309;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  animation: bounce-subtle 1s infinite alternate ease-in-out;
-}
-
-@keyframes bounce-subtle {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-2px); }
-}
-
-.bonus-icon {
-  color: #f59e0b;
 }
 
 .win-text {
@@ -1724,7 +1632,7 @@ onUnmounted(() => {
 
 .dpad-btn:active {
   background: #e2e8f0;
-  transform: scale(0.94);
+  border-color: #3b82f6;
 }
 
 .dpad-btn.pause {
@@ -1803,6 +1711,7 @@ onUnmounted(() => {
 @media (max-width: 540px) {
   .snake-container {
     gap: 0.65rem;
+    max-width: 100%;
   }
 
   /* Header compacto en una sola fila */
@@ -1814,8 +1723,12 @@ onUnmounted(() => {
     flex: 1;
   }
   .btn-back {
-    padding: 0.4rem 0.65rem;
+    padding: 0.38rem 0.65rem;
     font-size: 0.8rem;
+  }
+  .btn-sound {
+    width: 34px;
+    height: 34px;
   }
 
   /* Marcador en 1 sola fila con 4 columnas compactas */
@@ -1824,12 +1737,12 @@ onUnmounted(() => {
     gap: 0.35rem;
   }
   .score-card {
-    padding: 0.4rem 0.2rem;
-    border-radius: 10px;
+    padding: 0.38rem 0.2rem;
+    border-radius: 9px;
   }
   .card-label {
-    font-size: 0.65rem;
-    margin-bottom: 0.1rem;
+    font-size: 0.62rem;
+    margin-bottom: 0.05rem;
   }
   .card-value {
     font-size: 1.15rem;
@@ -1839,8 +1752,8 @@ onUnmounted(() => {
   .settings-bar {
     flex-direction: row;
     justify-content: space-between;
-    padding: 0.35rem 0.5rem;
-    gap: 0.4rem;
+    padding: 0.35rem 0.55rem;
+    gap: 0.35rem;
   }
   .setting-group {
     gap: 0.3rem;
@@ -1853,16 +1766,49 @@ onUnmounted(() => {
     font-size: 0.7rem;
   }
 
-  /* Banner de estado más compacto */
-  .status-banner {
-    padding: 0.4rem 0.6rem;
-    min-height: 38px;
-    font-size: 0.82rem;
+  /* Canvas a ancho completo proporcional */
+  .canvas-wrapper {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-width: 2px;
+    border-radius: 16px;
   }
 
-  /* Controles D-Pad táctiles ergonómicos y compactos */
+  /* Tarjeta de overlay adaptada perfectamente para que NUNCA se corte */
+  .canvas-overlay {
+    padding: 0.65rem;
+  }
+  .overlay-card {
+    padding: 0.85rem 0.75rem;
+    gap: 0.5rem;
+    max-width: 280px;
+    width: 90%;
+  }
+  .gameover-skull {
+    font-size: 1.6rem;
+  }
+  .overlay-title {
+    font-size: 1.25rem;
+  }
+  .overlay-subtitle {
+    font-size: 0.78rem;
+  }
+  .overlay-play-btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.95rem;
+  }
+  .final-stats {
+    padding: 0.45rem 0.35rem;
+    gap: 0.35rem;
+  }
+  .final-stat-item .stat-num {
+    font-size: 1rem;
+  }
+
+  /* Controles D-Pad táctiles ergonómicos */
   .dpad-container {
     gap: 4px;
+    touch-action: none;
   }
   .dpad-row {
     gap: 4px;
@@ -1872,15 +1818,16 @@ onUnmounted(() => {
     height: 44px;
     font-size: 1.1rem;
     border-radius: 10px;
+    touch-action: none;
   }
 
   /* Botones inferiores en una sola fila horizontal */
   .game-controls {
     flex-direction: row;
-    gap: 0.4rem;
+    gap: 0.35rem;
   }
   .btn {
-    padding: 0.55rem 0.5rem;
+    padding: 0.52rem 0.5rem;
     font-size: 0.78rem;
     gap: 0.3rem;
   }
