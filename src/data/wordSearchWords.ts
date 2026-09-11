@@ -221,7 +221,6 @@ export function generateWordSearch(difficulty: WordSearchDifficulty, categoryId?
   for (let idx = 0; idx < wordsToPlace.length; idx++) {
     const w = wordsToPlace[idx];
     const r = idx;
-    const startC = 0;
     const cells: [number, number][] = [];
     for (let c = 0; c < w.length; c++) {
       fallbackGrid[r][c] = w[c];
