@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
-import type { Board, Player, WinningLine, ScoreState } from '../../types/game';
+import { ref, reactive, computed, watch, onUnmounted } from 'vue';
+import type { Board, Player, WinningLine, ScoreState, GamePlayMode } from '../../types/game';
 import {
   IconArrowLeft,
   IconRefresh,
@@ -9,8 +9,19 @@ import {
   IconHandshake,
   IconCross,
   IconCircle,
-  IconTicTacToe
+  IconTicTacToe,
+  IconBot,
+  IconUsers
 } from '../icons';
+
+const props = withDefaults(
+  defineProps<{
+    initialMode?: GamePlayMode;
+  }>(),
+  {
+    initialMode: 'bot'
+  }
+);
 
 const emit = defineEmits<{
   (e: 'back'): void;
@@ -29,6 +40,20 @@ const WINNING_COMBINATIONS: [number, number, number][] = [
   [0, 4, 8],
   [2, 4, 6]
 ];
+
+// Modo de juego: 'bot' (1 jugador vs IA) o 'pvp' (2 jugadores local)
+const gameMode = ref<GamePlayMode>(props.initialMode || 'bot');
+const isBotThinking = ref<boolean>(false);
+let botTimeout: number | null = null;
+
+watch(
+  () => props.initialMode,
+  (newMode) => {
+    if (newMode && newMode !== gameMode.value) {
+      switchMode(newMode);
+    }
+  }
+);
 
 // Estado de la partida
 const board = ref<Board>(Array(9).fill(null));
@@ -60,9 +85,120 @@ const checkWinner = (currentBoard: Board): { winner: Player | null; line: Winnin
   return { winner: null, line: null };
 };
 
+// --- INTELIGENCIA ARTIFICIAL (MINIMAX) PARA TICTACTOE ---
+function minimax(b: Board, depth: number, isMaximizing: boolean): number {
+  const winResult = checkWinner(b);
+  if (winResult.winner === 'O') return 10 - depth;
+  if (winResult.winner === 'X') return depth - 10;
+  if (!b.includes(null)) return 0;
+
+  if (isMaximizing) {
+    let maxEval = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (b[i] === null) {
+        b[i] = 'O';
+        const ev = minimax(b, depth + 1, false);
+        b[i] = null;
+        maxEval = Math.max(maxEval, ev);
+      }
+    }
+    return maxEval;
+  } else {
+    let minEval = Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (b[i] === null) {
+        b[i] = 'X';
+        const ev = minimax(b, depth + 1, true);
+        b[i] = null;
+        minEval = Math.min(minEval, ev);
+      }
+    }
+    return minEval;
+  }
+}
+
+function getBestMove(b: Board): number {
+  // 1. Si el centro está libre, tiene alta prioridad estratégica
+  if (b[4] === null && Math.random() < 0.75) {
+    return 4;
+  }
+
+  // 2. Ejecutar Minimax para encontrar la mejor jugada
+  let bestVal = -Infinity;
+  let bestMove = -1;
+  const moves: { index: number; score: number }[] = [];
+
+  for (let i = 0; i < 9; i++) {
+    if (b[i] === null) {
+      b[i] = 'O';
+      const moveVal = minimax(b, 0, false);
+      b[i] = null;
+      moves.push({ index: i, score: moveVal });
+      if (moveVal > bestVal) {
+        bestVal = moveVal;
+        bestMove = i;
+      }
+    }
+  }
+
+  // Si hay varios movimientos con la misma puntuación máxima, seleccionar uno aleatoriamente
+  const topMoves = moves.filter(m => m.score === bestVal);
+  if (topMoves.length > 0) {
+    return topMoves[Math.floor(Math.random() * topMoves.length)].index;
+  }
+
+  return bestMove;
+}
+
+function triggerBotMove() {
+  if (isGameOver.value || currentPlayer.value !== 'O' || gameMode.value !== 'bot') return;
+
+  isBotThinking.value = true;
+  if (botTimeout !== null) clearTimeout(botTimeout);
+
+  botTimeout = window.setTimeout(() => {
+    if (isGameOver.value || currentPlayer.value !== 'O' || gameMode.value !== 'bot') {
+      isBotThinking.value = false;
+      return;
+    }
+
+    const moveIndex = getBestMove(board.value);
+    if (moveIndex !== -1 && board.value[moveIndex] === null) {
+      board.value[moveIndex] = 'O';
+
+      const winResult = checkWinner(board.value);
+      if (winResult.winner) {
+        winner.value = winResult.winner;
+        winningLine.value = winResult.line;
+        scores.o++;
+        isBotThinking.value = false;
+        return;
+      }
+
+      const hasEmpty = board.value.some(c => c === null);
+      if (!hasEmpty) {
+        isDraw.value = true;
+        scores.draws++;
+        isBotThinking.value = false;
+        return;
+      }
+
+      currentPlayer.value = 'X';
+    }
+
+    isBotThinking.value = false;
+  }, 450);
+}
+
 const handleCellClick = (index: number) => {
-  // Evitar clicks si la casilla ya tiene valor o el juego terminó
-  if (board.value[index] !== null || isGameOver.value) return;
+  // Evitar clicks si la casilla ya tiene valor, si el juego terminó o si el bot está pensando
+  if (
+    board.value[index] !== null ||
+    isGameOver.value ||
+    (gameMode.value === 'bot' && (isBotThinking.value || currentPlayer.value === 'O'))
+  ) {
+    return;
+  }
 
   // Realizar jugada
   board.value[index] = currentPlayer.value;
@@ -90,9 +226,19 @@ const handleCellClick = (index: number) => {
 
   // Alternar turno
   currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X';
+
+  // Si es modo bot y le toca a 'O', activar el bot
+  if (gameMode.value === 'bot' && currentPlayer.value === 'O') {
+    triggerBotMove();
+  }
 };
 
 const resetGame = () => {
+  if (botTimeout !== null) {
+    clearTimeout(botTimeout);
+    botTimeout = null;
+  }
+  isBotThinking.value = false;
   board.value = Array(9).fill(null);
   currentPlayer.value = 'X';
   winner.value = null;
@@ -107,9 +253,21 @@ const resetScores = () => {
   resetGame();
 };
 
+const switchMode = (newMode: GamePlayMode) => {
+  if (gameMode.value === newMode) return;
+  gameMode.value = newMode;
+  resetScores();
+};
+
 const isWinningCell = (index: number): boolean => {
   return winningLine.value !== null && winningLine.value.includes(index);
 };
+
+onUnmounted(() => {
+  if (botTimeout !== null) {
+    clearTimeout(botTimeout);
+  }
+});
 </script>
 
 <template>
@@ -126,10 +284,30 @@ const isWinningCell = (index: number): boolean => {
       <div class="header-spacer" aria-hidden="true"></div>
     </header>
 
+    <!-- Selector de Modo de Juego -->
+    <div class="mode-toggle-bar" role="group" aria-label="Modo de juego">
+      <button
+        type="button"
+        class="mode-toggle-btn"
+        :class="{ 'is-active': gameMode === 'bot' }"
+        @click="switchMode('bot')"
+      >
+        <IconBot class="mode-btn-icon" /> Contra el Bot
+      </button>
+      <button
+        type="button"
+        class="mode-toggle-btn"
+        :class="{ 'is-active': gameMode === 'pvp' }"
+        @click="switchMode('pvp')"
+      >
+        <IconUsers class="mode-btn-icon" /> 2 Jugadores
+      </button>
+    </div>
+
     <!-- Marcador de victorias -->
     <section class="scoreboard" aria-label="Marcador de la partida">
       <div class="score-card player-x" :class="{ 'is-turn': currentPlayer === 'X' && !isGameOver }">
-        <span class="player-label">Jugador X</span>
+        <span class="player-label">{{ gameMode === 'bot' ? 'Tú (X)' : 'Jugador X' }}</span>
         <span class="score-value">{{ scores.x }}</span>
       </div>
       <div class="score-card ties">
@@ -137,7 +315,7 @@ const isWinningCell = (index: number): boolean => {
         <span class="score-value">{{ scores.draws }}</span>
       </div>
       <div class="score-card player-o" :class="{ 'is-turn': currentPlayer === 'O' && !isGameOver }">
-        <span class="player-label">Jugador O</span>
+        <span class="player-label">{{ gameMode === 'bot' ? 'Bot (O)' : 'Jugador O' }}</span>
         <span class="score-value">{{ scores.o }}</span>
       </div>
     </section>
@@ -147,24 +325,39 @@ const isWinningCell = (index: number): boolean => {
       class="status-banner"
       :class="{
         'status-win': winner,
-        'status-draw': isDraw
+        'status-draw': isDraw,
+        'status-thinking': isBotThinking
       }"
       role="status"
       aria-live="polite"
     >
       <template v-if="winner">
         <IconTrophy class="status-icon" />
-        <span>¡El <strong>Jugador {{ winner }}</strong> ha ganado la partida!</span>
+        <span v-if="gameMode === 'bot'">
+          {{ winner === 'X' ? '¡Felicidades, has ganado la partida!' : '¡El Bot ha ganado la partida!' }}
+        </span>
+        <span v-else>
+          ¡El <strong>Jugador {{ winner }}</strong> ha ganado la partida!
+        </span>
       </template>
       <template v-else-if="isDraw">
         <IconHandshake class="status-icon" />
         <span>¡La partida ha terminado en <strong>empate</strong>!</span>
       </template>
+      <template v-else-if="isBotThinking">
+        <IconBot class="status-icon pulse-icon" />
+        <span>El Bot está pensando su jugada...</span>
+      </template>
       <template v-else>
-        <span>Turno del jugador:</span>
-        <span class="current-turn-badge" :class="`badge-${currentPlayer.toLowerCase()}`">
-          {{ currentPlayer }}
+        <span v-if="gameMode === 'bot'">
+          Tu turno: coloca tu ficha (X)
         </span>
+        <template v-else>
+          <span>Turno del jugador:</span>
+          <span class="current-turn-badge" :class="`badge-${currentPlayer.toLowerCase()}`">
+            {{ currentPlayer }}
+          </span>
+        </template>
       </template>
     </div>
 
@@ -181,7 +374,7 @@ const isWinningCell = (index: number): boolean => {
             'cell-o': cell === 'O',
             'is-winning': isWinningCell(index)
           }"
-          :disabled="cell !== null || isGameOver"
+          :disabled="cell !== null || isGameOver || isBotThinking"
           :aria-label="cell ? `Casilla ${index + 1}: ${cell}` : `Casilla vacía ${index + 1}`"
           @click="handleCellClick(index)"
         >
@@ -262,6 +455,48 @@ const isWinningCell = (index: number): boolean => {
 .btn-back:hover {
   background: #f1f5f9;
   border-color: #94a3b8;
+}
+
+/* Selector de Modo */
+.mode-toggle-bar {
+  display: flex;
+  background: #f1f5f9;
+  padding: 0.3rem;
+  border-radius: 12px;
+  gap: 0.35rem;
+  border: 1px solid #e2e8f0;
+}
+
+.mode-toggle-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.85rem;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.92rem;
+  font-weight: 700;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-toggle-btn:hover:not(.is-active) {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.mode-toggle-btn.is-active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.mode-btn-icon {
+  font-size: 1.15rem;
 }
 
 /* Marcador */
@@ -354,6 +589,27 @@ const isWinningCell = (index: number): boolean => {
   background: #fffbeb;
   border-color: #f59e0b;
   color: #92400e;
+}
+
+.status-banner.status-thinking {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+
+.pulse-icon {
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
 }
 
 .current-turn-badge {

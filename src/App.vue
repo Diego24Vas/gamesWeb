@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { ViewState } from './types/game';
+import type { ViewState, GamePlayMode } from './types/game';
 import MainMenu from './components/MainMenu.vue';
 import TicTacToe from './components/games/TicTacToe.vue';
 import ConnectFour from './components/games/ConnectFour.vue';
@@ -29,8 +29,18 @@ function getViewFromHash(): ViewState {
 }
 
 const currentView = ref<ViewState>(getViewFromHash());
+const selectedGameModes = ref<{
+  tictactoe: GamePlayMode;
+  connect4: GamePlayMode;
+}>({
+  tictactoe: 'bot',
+  connect4: 'bot'
+});
 
-const navigateToGame = (gameId: ViewState) => {
+const navigateToGame = (gameId: ViewState, mode?: GamePlayMode) => {
+  if (mode && (gameId === 'tictactoe' || gameId === 'connect4')) {
+    selectedGameModes.value[gameId] = mode;
+  }
   currentView.value = gameId;
   window.location.hash = gameId;
 };
@@ -112,11 +122,13 @@ if (typeof window !== 'undefined') {
         <TicTacToe
           v-else-if="currentView === 'tictactoe'"
           key="tictactoe"
+          :initial-mode="selectedGameModes.tictactoe"
           @back="navigateToMenu"
         />
         <ConnectFour
           v-else-if="currentView === 'connect4'"
           key="connect4"
+          :initial-mode="selectedGameModes.connect4"
           @back="navigateToMenu"
         />
         <MemoryGame

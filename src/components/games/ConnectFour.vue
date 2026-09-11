@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch, onUnmounted } from 'vue';
 import type {
   Connect4Board,
   Connect4Player,
   Connect4WinningCoords,
-  Connect4ScoreState
+  Connect4ScoreState,
+  GamePlayMode
 } from '../../types/game';
 import {
   IconArrowLeft,
@@ -14,8 +15,19 @@ import {
   IconHandshake,
   IconChevronDown,
   IconDisc,
-  IconConnect4Grid
+  IconConnect4Grid,
+  IconBot,
+  IconUsers
 } from '../icons';
+
+const props = withDefaults(
+  defineProps<{
+    initialMode?: GamePlayMode;
+  }>(),
+  {
+    initialMode: 'bot'
+  }
+);
 
 const emit = defineEmits<{
   (e: 'back'): void;
@@ -23,6 +35,20 @@ const emit = defineEmits<{
 
 const ROWS = 6;
 const COLS = 7;
+
+// Modo de juego: 'bot' (1 jugador vs IA) o 'pvp' (2 jugadores local)
+const gameMode = ref<GamePlayMode>(props.initialMode || 'bot');
+const isBotThinking = ref<boolean>(false);
+let botTimeout: number | null = null;
+
+watch(
+  () => props.initialMode,
+  (newMode) => {
+    if (newMode && newMode !== gameMode.value) {
+      switchMode(newMode);
+    }
+  }
+);
 
 const createEmptyBoard = (): Connect4Board => {
   return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
@@ -135,17 +161,248 @@ const checkWinner = (
 };
 
 // Encuentra la fila disponible más baja para la columna indicada
-const getAvailableRow = (col: number): number => {
+const getAvailableRow = (col: number, b: Connect4Board = board.value): number => {
   for (let r = ROWS - 1; r >= 0; r--) {
-    if (board.value[r][col] === null) {
+    if (b[r][col] === null) {
       return r;
     }
   }
   return -1;
 };
 
+// --- INTELIGENCIA ARTIFICIAL (MINIMAX CON PODA ALPHA-BETA) ---
+const COL_ORDER = [3, 2, 4, 1, 5, 0, 6];
+
+const checkFastWin = (b: Connect4Board, player: Connect4Player): boolean => {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS - 3; c++) {
+      if (b[r][c] === player && b[r][c + 1] === player && b[r][c + 2] === player && b[r][c + 3] === player) {
+        return true;
+      }
+    }
+  }
+  for (let r = 0; r < ROWS - 3; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (b[r][c] === player && b[r + 1][c] === player && b[r + 2][c] === player && b[r + 3][c] === player) {
+        return true;
+      }
+    }
+  }
+  for (let r = 0; r < ROWS - 3; r++) {
+    for (let c = 0; c < COLS - 3; c++) {
+      if (b[r][c] === player && b[r + 1][c + 1] === player && b[r + 2][c + 2] === player && b[r + 3][c + 3] === player) {
+        return true;
+      }
+    }
+  }
+  for (let r = 3; r < ROWS; r++) {
+    for (let c = 0; c < COLS - 3; c++) {
+      if (b[r][c] === player && b[r - 1][c + 1] === player && b[r - 2][c + 2] === player && b[r - 3][c + 3] === player) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+const evaluateWindow = (w: (Connect4Player | null)[], piece: Connect4Player): number => {
+  const opp: Connect4Player = piece === 'yellow' ? 'red' : 'yellow';
+  let countPiece = 0;
+  let countOpp = 0;
+  let countEmpty = 0;
+  for (let i = 0; i < 4; i++) {
+    if (w[i] === piece) countPiece++;
+    else if (w[i] === opp) countOpp++;
+    else countEmpty++;
+  }
+  if (countPiece === 4) return 10000;
+  if (countPiece === 3 && countEmpty === 1) return 100;
+  if (countPiece === 2 && countEmpty === 2) return 10;
+  if (countOpp === 3 && countEmpty === 1) return -90;
+  if (countOpp === 2 && countEmpty === 2) return -8;
+  return 0;
+};
+
+const scorePosition = (b: Connect4Board, piece: Connect4Player): number => {
+  let score = 0;
+  const centerCol = 3;
+  let centerCount = 0;
+  for (let r = 0; r < ROWS; r++) {
+    if (b[r][centerCol] === piece) centerCount++;
+  }
+  score += centerCount * 6;
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS - 3; c++) {
+      score += evaluateWindow([b[r][c], b[r][c + 1], b[r][c + 2], b[r][c + 3]], piece);
+    }
+  }
+  for (let r = 0; r < ROWS - 3; r++) {
+    for (let c = 0; c < COLS; c++) {
+      score += evaluateWindow([b[r][c], b[r + 1][c], b[r + 2][c], b[r + 3][c]], piece);
+    }
+  }
+  for (let r = 0; r < ROWS - 3; r++) {
+    for (let c = 0; c < COLS - 3; c++) {
+      score += evaluateWindow([b[r][c], b[r + 1][c + 1], b[r + 2][c + 2], b[r + 3][c + 3]], piece);
+    }
+  }
+  for (let r = 3; r < ROWS; r++) {
+    for (let c = 0; c < COLS - 3; c++) {
+      score += evaluateWindow([b[r][c], b[r - 1][c + 1], b[r - 2][c + 2], b[r - 3][c + 3]], piece);
+    }
+  }
+  return score;
+};
+
+const minimax = (
+  b: Connect4Board,
+  depth: number,
+  alpha: number,
+  beta: number,
+  isMaximizing: boolean
+): number => {
+  const isBotWin = checkFastWin(b, 'yellow');
+  const isHumanWin = checkFastWin(b, 'red');
+  if (isBotWin) return 100000 + depth;
+  if (isHumanWin) return -100000 - depth;
+
+  const validCols = COL_ORDER.filter((c) => b[0][c] === null);
+  if (depth === 0 || validCols.length === 0) {
+    return scorePosition(b, 'yellow');
+  }
+
+  if (isMaximizing) {
+    let maxEval = -Infinity;
+    for (const c of validCols) {
+      const r = getAvailableRow(c, b);
+      b[r][c] = 'yellow';
+      const ev = minimax(b, depth - 1, alpha, beta, false);
+      b[r][c] = null;
+      maxEval = Math.max(maxEval, ev);
+      alpha = Math.max(alpha, ev);
+      if (beta <= alpha) break;
+    }
+    return maxEval;
+  } else {
+    let minEval = Infinity;
+    for (const c of validCols) {
+      const r = getAvailableRow(c, b);
+      b[r][c] = 'red';
+      const ev = minimax(b, depth - 1, alpha, beta, true);
+      b[r][c] = null;
+      minEval = Math.min(minEval, ev);
+      beta = Math.min(beta, ev);
+      if (beta <= alpha) break;
+    }
+    return minEval;
+  }
+};
+
+const getBestBotCol = (b: Connect4Board): number => {
+  const validCols = COL_ORDER.filter((c) => b[0][c] === null);
+  if (validCols.length === 0) return -1;
+
+  // 1. Ganar de inmediato si es posible
+  for (const c of validCols) {
+    const r = getAvailableRow(c, b);
+    b[r][c] = 'yellow';
+    if (checkFastWin(b, 'yellow')) {
+      b[r][c] = null;
+      return c;
+    }
+    b[r][c] = null;
+  }
+
+  // 2. Bloquear victoria inmediata del oponente humano
+  for (const c of validCols) {
+    const r = getAvailableRow(c, b);
+    b[r][c] = 'red';
+    if (checkFastWin(b, 'red')) {
+      b[r][c] = null;
+      return c;
+    }
+    b[r][c] = null;
+  }
+
+  // 3. Minimax de profundidad 4
+  let bestScore = -Infinity;
+  const bestMoves: number[] = [];
+
+  for (const c of validCols) {
+    const r = getAvailableRow(c, b);
+    b[r][c] = 'yellow';
+    const score = minimax(b, 4, -Infinity, Infinity, false);
+    b[r][c] = null;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestMoves.length = 0;
+      bestMoves.push(c);
+    } else if (score === bestScore) {
+      bestMoves.push(c);
+    }
+  }
+
+  if (bestMoves.length > 0) {
+    return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+  }
+
+  return validCols[0];
+};
+
+const triggerBotMove = () => {
+  if (isGameOver.value || currentPlayer.value !== 'yellow' || gameMode.value !== 'bot') return;
+
+  isBotThinking.value = true;
+  if (botTimeout !== null) {
+    clearTimeout(botTimeout);
+  }
+
+  botTimeout = window.setTimeout(() => {
+    if (isGameOver.value || currentPlayer.value !== 'yellow' || gameMode.value !== 'bot') {
+      isBotThinking.value = false;
+      return;
+    }
+
+    const bestCol = getBestBotCol(board.value);
+    if (bestCol !== -1) {
+      const targetRow = getAvailableRow(bestCol);
+      if (targetRow !== -1) {
+        board.value[targetRow][bestCol] = 'yellow';
+
+        const winResult = checkWinner(board.value);
+        if (winResult) {
+          winner.value = winResult.winner;
+          winningCoords.value = winResult.coords;
+          scores.yellow++;
+          isBotThinking.value = false;
+          return;
+        }
+
+        const isFull = board.value[0].every((cell) => cell !== null);
+        if (isFull) {
+          isDraw.value = true;
+          scores.draws++;
+          isBotThinking.value = false;
+          return;
+        }
+
+        currentPlayer.value = 'red';
+      }
+    }
+
+    isBotThinking.value = false;
+  }, 480);
+};
+
 const dropToken = (col: number) => {
-  if (isGameOver.value) return;
+  if (
+    isGameOver.value ||
+    (gameMode.value === 'bot' && (isBotThinking.value || currentPlayer.value === 'yellow'))
+  ) {
+    return;
+  }
 
   const targetRow = getAvailableRow(col);
   if (targetRow === -1) return; // Columna llena
@@ -174,9 +431,19 @@ const dropToken = (col: number) => {
 
   // Cambiar turno
   currentPlayer.value = currentPlayer.value === 'red' ? 'yellow' : 'red';
+
+  // Si es modo bot y le toca a yellow, activar bot
+  if (gameMode.value === 'bot' && currentPlayer.value === 'yellow') {
+    triggerBotMove();
+  }
 };
 
 const resetGame = () => {
+  if (botTimeout !== null) {
+    clearTimeout(botTimeout);
+    botTimeout = null;
+  }
+  isBotThinking.value = false;
   board.value = createEmptyBoard();
   currentPlayer.value = 'red';
   winner.value = null;
@@ -192,10 +459,22 @@ const resetScores = () => {
   resetGame();
 };
 
+const switchMode = (newMode: GamePlayMode) => {
+  if (gameMode.value === newMode) return;
+  gameMode.value = newMode;
+  resetScores();
+};
+
 const isWinningCell = (r: number, c: number): boolean => {
   if (!winningCoords.value) return false;
   return winningCoords.value.some(([winR, winC]) => winR === r && winC === c);
 };
+
+onUnmounted(() => {
+  if (botTimeout !== null) {
+    clearTimeout(botTimeout);
+  }
+});
 </script>
 
 <template>
@@ -224,7 +503,7 @@ const isWinningCell = (r: number, c: number): boolean => {
             class="drop-col-preview"
           >
             <div
-              v-if="hoveredCol === col - 1 && !isGameOver && getAvailableRow(col - 1) !== -1"
+              v-if="hoveredCol === col - 1 && !isGameOver && !isBotThinking && getAvailableRow(col - 1) !== -1"
               class="preview-token"
               :class="`token-${currentPlayer}`"
             ></div>
@@ -241,7 +520,7 @@ const isWinningCell = (r: number, c: number): boolean => {
               type="button"
               class="column-trigger"
               :class="{ 'col-full': getAvailableRow(colIdx - 1) === -1 }"
-              :disabled="isGameOver || getAvailableRow(colIdx - 1) === -1"
+              :disabled="isGameOver || isBotThinking || getAvailableRow(colIdx - 1) === -1"
               :aria-label="`Columna ${colIdx}`"
               @click="dropToken(colIdx - 1)"
               @mouseenter="hoveredCol = colIdx - 1"
@@ -276,6 +555,26 @@ const isWinningCell = (r: number, c: number): boolean => {
 
       <!-- Columna Lateral en Desktop: Marcador, Turno/Estado y Acciones -->
       <aside class="sidebar-column">
+        <!-- Selector de Modo de Juego -->
+        <div class="mode-toggle-bar" role="group" aria-label="Modo de juego">
+          <button
+            type="button"
+            class="mode-toggle-btn"
+            :class="{ 'is-active': gameMode === 'bot' }"
+            @click="switchMode('bot')"
+          >
+            <IconBot class="mode-btn-icon" /> Contra el Bot
+          </button>
+          <button
+            type="button"
+            class="mode-toggle-btn"
+            :class="{ 'is-active': gameMode === 'pvp' }"
+            @click="switchMode('pvp')"
+          >
+            <IconUsers class="mode-btn-icon" /> 2 Jugadores
+          </button>
+        </div>
+
         <!-- Marcador de victorias -->
         <section class="scoreboard" aria-label="Marcador de Conecta 4">
           <div
@@ -283,7 +582,8 @@ const isWinningCell = (r: number, c: number): boolean => {
             :class="{ 'is-turn': currentPlayer === 'red' && !isGameOver }"
           >
             <span class="player-label">
-              <IconDisc color="red" class="label-disc" /> Rojas
+              <IconDisc color="red" class="label-disc" />
+              {{ gameMode === 'bot' ? 'Tú (Rojas)' : 'Rojas' }}
             </span>
             <span class="score-value">{{ scores.red }}</span>
           </div>
@@ -296,7 +596,8 @@ const isWinningCell = (r: number, c: number): boolean => {
             :class="{ 'is-turn': currentPlayer === 'yellow' && !isGameOver }"
           >
             <span class="player-label">
-              <IconDisc color="yellow" class="label-disc" /> Amarillas
+              <IconDisc color="yellow" class="label-disc" />
+              {{ gameMode === 'bot' ? 'Bot (Amarillas)' : 'Amarillas' }}
             </span>
             <span class="score-value">{{ scores.yellow }}</span>
           </div>
@@ -307,25 +608,40 @@ const isWinningCell = (r: number, c: number): boolean => {
           class="status-banner"
           :class="{
             'status-win': winner,
-            'status-draw': isDraw
+            'status-draw': isDraw,
+            'status-thinking': isBotThinking
           }"
           role="status"
           aria-live="polite"
         >
           <template v-if="winner">
             <IconTrophy class="status-icon" />
-            <span>¡El equipo <strong>{{ winner === 'red' ? 'Rojo' : 'Amarillo' }}</strong> ha ganado!</span>
+            <span v-if="gameMode === 'bot'">
+              {{ winner === 'red' ? '¡Felicidades, has ganado la partida!' : '¡El Bot ha ganado la partida!' }}
+            </span>
+            <span v-else>
+              ¡El equipo <strong>{{ winner === 'red' ? 'Rojo' : 'Amarillo' }}</strong> ha ganado!
+            </span>
           </template>
           <template v-else-if="isDraw">
             <IconHandshake class="status-icon" />
             <span>¡Tablero lleno! La partida terminó en <strong>empate</strong>.</span>
           </template>
+          <template v-else-if="isBotThinking">
+            <IconBot class="status-icon pulse-icon" />
+            <span>El Bot está pensando su jugada...</span>
+          </template>
           <template v-else>
-            <span>Turno de:</span>
-            <span class="current-turn-badge" :class="`badge-${currentPlayer}`">
-              <IconDisc :color="currentPlayer" class="turn-disc" />
-              {{ currentPlayer === 'red' ? 'Fichas Rojas' : 'Fichas Amarillas' }}
+            <span v-if="gameMode === 'bot'">
+              Tu turno: suelta tu ficha roja
             </span>
+            <template v-else>
+              <span>Turno de:</span>
+              <span class="current-turn-badge" :class="`badge-${currentPlayer}`">
+                <IconDisc :color="currentPlayer" class="turn-disc" />
+                {{ currentPlayer === 'red' ? 'Fichas Rojas' : 'Fichas Amarillas' }}
+              </span>
+            </template>
           </template>
         </div>
 
@@ -392,6 +708,48 @@ const isWinningCell = (r: number, c: number): boolean => {
   border-radius: 16px;
   padding: 1.25rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* Selector de Modo */
+.mode-toggle-bar {
+  display: flex;
+  background: #f1f5f9;
+  padding: 0.3rem;
+  border-radius: 12px;
+  gap: 0.35rem;
+  border: 1px solid #e2e8f0;
+}
+
+.mode-toggle-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-toggle-btn:hover:not(.is-active) {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.mode-toggle-btn.is-active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.mode-btn-icon {
+  font-size: 1.1rem;
 }
 
 .sidebar-column .scoreboard {
@@ -579,6 +937,27 @@ const isWinningCell = (r: number, c: number): boolean => {
   background: #fffbeb;
   border-color: #f59e0b;
   color: #92400e;
+}
+
+.status-banner.status-thinking {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+
+.pulse-icon {
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
 }
 
 .current-turn-badge {
@@ -859,6 +1238,14 @@ const isWinningCell = (r: number, c: number): boolean => {
   .header-spacer {
     justify-self: end;
     width: auto;
+  }
+
+  .mode-toggle-bar {
+    order: 0;
+    max-width: 440px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .scoreboard {

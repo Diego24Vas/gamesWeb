@@ -40,3 +40,5 @@ export { default as IconRotate } from './IconRotate.vue';
 export { default as IconSpaceInvaders } from './IconSpaceInvaders.vue';
 export { default as IconSudoku } from './IconSudoku.vue';
 export { default as IconWordSearch } from './IconWordSearch.vue';
+export { default as IconBot } from './IconBot.vue';
+export { default as IconUsers } from './IconUsers.vue';
