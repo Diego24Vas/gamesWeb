@@ -9,7 +9,8 @@ import {
   IconPlay,
   IconPause,
   IconVolume,
-  IconVolumeMute
+  IconVolumeMute,
+  IconFlappyBird
 } from '../icons';
 
 const emit = defineEmits<{
@@ -21,6 +22,7 @@ const VIRTUAL_WIDTH = 420;
 const VIRTUAL_HEIGHT = 540;
 const GROUND_HEIGHT = 65;
 const PLAY_HEIGHT = VIRTUAL_HEIGHT - GROUND_HEIGHT;
+const GROUND_PATTERN_WIDTH = 120;
 
 // Referencias
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -395,14 +397,16 @@ const updateGame = () => {
     bird.y = PLAY_HEIGHT / 2 + Math.sin(idleFloatTimer) * 9;
     bird.rotation = 0;
     bird.wingAngle = Math.sin(idleFloatTimer * 2) * 0.4;
-    groundOffset = (groundOffset + config.pipeSpeed * 0.6) % 24;
+    groundOffset = (groundOffset - config.pipeSpeed * 0.6) % GROUND_PATTERN_WIDTH;
+    if (groundOffset < 0) groundOffset += GROUND_PATTERN_WIDTH;
     return;
   }
 
   if (gameStatus.value !== 'playing') return;
 
-  // Desplazar suelo
-  groundOffset = (groundOffset + config.pipeSpeed) % 24;
+  // Desplazar suelo hacia la izquierda al unísono con las tuberías
+  groundOffset = (groundOffset - config.pipeSpeed) % GROUND_PATTERN_WIDTH;
+  if (groundOffset < 0) groundOffset += GROUND_PATTERN_WIDTH;
 
   // 1. Físicas del pájaro
   bird.vy += config.gravity;
@@ -535,27 +539,69 @@ const render = () => {
     drawPipe(ctx, p);
   });
 
-  // 5. Suelo animado con franjas
-  const groundGrad = ctx.createLinearGradient(0, PLAY_HEIGHT, 0, h);
-  groundGrad.addColorStop(0, '#15803d');
-  groundGrad.addColorStop(0.12, '#16a34a');
-  groundGrad.addColorStop(0.13, '#78350f');
+  // 5. Suelo con textura de tierra natural y césped (sin franjas mareantes)
+  // 5.1 Capa de tierra base con degradado suave
+  const groundGrad = ctx.createLinearGradient(0, PLAY_HEIGHT + 10, 0, h);
+  groundGrad.addColorStop(0, '#78350f');
+  groundGrad.addColorStop(0.3, '#854d0e');
+  groundGrad.addColorStop(0.7, '#713f12');
   groundGrad.addColorStop(1, '#451a03');
   ctx.fillStyle = groundGrad;
-  ctx.fillRect(0, PLAY_HEIGHT, w, GROUND_HEIGHT);
+  ctx.fillRect(0, PLAY_HEIGHT + 10, w, GROUND_HEIGHT - 10);
 
-  // Franjas diagonales del suelo en movimiento
+  // 5.2 Textura sutil de partículas/motas de tierra (dispersas, orgánicas y suaves)
   ctx.save();
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-  for (let x = -24 + groundOffset; x < w + 24; x += 24) {
-    ctx.beginPath();
-    ctx.moveTo(x, PLAY_HEIGHT + 8);
-    ctx.lineTo(x + 12, PLAY_HEIGHT + 8);
-    ctx.lineTo(x - 2, h);
-    ctx.lineTo(x - 14, h);
-    ctx.fill();
+  const dirtSpecs = [
+    { x: 14, y: 18, rx: 3.5, ry: 1.8, color: 'rgba(0, 0, 0, 0.14)' },
+    { x: 28, y: 32, rx: 2.5, ry: 1.2, color: 'rgba(255, 255, 255, 0.08)' },
+    { x: 44, y: 22, rx: 4, ry: 1.8, color: 'rgba(0, 0, 0, 0.12)' },
+    { x: 60, y: 44, rx: 3, ry: 1.5, color: 'rgba(255, 255, 255, 0.06)' },
+    { x: 76, y: 28, rx: 4.5, ry: 1.8, color: 'rgba(0, 0, 0, 0.15)' },
+    { x: 92, y: 18, rx: 2.5, ry: 1.2, color: 'rgba(255, 255, 255, 0.09)' },
+    { x: 106, y: 36, rx: 3.5, ry: 1.5, color: 'rgba(0, 0, 0, 0.13)' },
+    { x: 38, y: 46, rx: 4, ry: 1.5, color: 'rgba(0, 0, 0, 0.16)' },
+    { x: 86, y: 42, rx: 3, ry: 1.2, color: 'rgba(255, 255, 255, 0.07)' }
+  ];
+
+  for (let base = -GROUND_PATTERN_WIDTH; base < w + GROUND_PATTERN_WIDTH; base += GROUND_PATTERN_WIDTH) {
+    const px = base + groundOffset;
+    for (let i = 0; i < dirtSpecs.length; i++) {
+      const spec = dirtSpecs[i];
+      const sx = px + spec.x;
+      const sy = PLAY_HEIGHT + spec.y;
+      if (sx >= -10 && sx <= w + 10) {
+        ctx.fillStyle = spec.color;
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, spec.rx, spec.ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
   }
   ctx.restore();
+
+  // 5.3 Franja de césped superior (fresca, limpia y con ligero relieve)
+  // Borde brillante superior del césped
+  ctx.fillStyle = '#4ade80';
+  ctx.fillRect(0, PLAY_HEIGHT, w, 2);
+
+  // Cuerpo principal del césped
+  ctx.fillStyle = '#22c55e';
+  ctx.fillRect(0, PLAY_HEIGHT + 2, w, 7);
+
+  // Sombra del césped contra la tierra
+  ctx.fillStyle = '#16a34a';
+  ctx.fillRect(0, PLAY_HEIGHT + 9, w, 2);
+
+  // Dientes / detalles sutiles de césped colgante hacia la tierra
+  ctx.fillStyle = '#15803d';
+  for (let gx = -16; gx < w + 16; gx += 16) {
+    const toothX = gx + (groundOffset % 16);
+    ctx.beginPath();
+    ctx.moveTo(toothX, PLAY_HEIGHT + 11);
+    ctx.lineTo(toothX + 4, PLAY_HEIGHT + 13.5);
+    ctx.lineTo(toothX + 8, PLAY_HEIGHT + 11);
+    ctx.fill();
+  }
 
   // 6. Partículas de plumas
   particles.value.forEach(p => {
@@ -815,7 +861,10 @@ onUnmounted(() => {
       <button class="btn-back" type="button" @click="emit('back')">
         <IconArrowLeft class="btn-icon" /> Volver al Menú
       </button>
-      <h2 class="game-title">Flappy Bird</h2>
+      <h2 class="game-title">
+        <span class="header-title-text">Flappy Bird</span>
+        <IconFlappyBird class="header-title-icon" aria-hidden="true" />
+      </h2>
       <button
         class="btn-sound"
         type="button"
@@ -1006,11 +1055,31 @@ onUnmounted(() => {
 }
 
 .game-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.45rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
   text-align: center;
+}
+
+.header-title-icon {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .header-title-text {
+    display: none;
+  }
+
+  .header-title-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
 }
 
 .btn-back {

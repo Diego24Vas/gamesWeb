@@ -18,7 +18,8 @@ import {
   IconPlanet,
   IconShield,
   IconVolume,
-  IconVolumeMute
+  IconVolumeMute,
+  IconCardsStack
 } from '../icons';
 
 const emit = defineEmits<{
@@ -291,7 +292,10 @@ onUnmounted(() => {
       <button class="btn-back" type="button" @click="emit('back')">
         <IconArrowLeft class="btn-icon" /> Volver al Menú
       </button>
-      <h2 class="game-title">Juego de Memoria</h2>
+      <h2 class="game-title">
+        <span class="header-title-text">Juego de Memoria</span>
+        <IconCardsStack class="header-title-icon" aria-hidden="true" />
+      </h2>
       <button
         class="btn-sound"
         type="button"
@@ -443,6 +447,10 @@ onUnmounted(() => {
   margin: 0;
   text-align: center;
   flex: 1;
+}
+
+.header-title-icon {
+  display: none;
 }
 
 .btn-sound {
@@ -845,10 +853,24 @@ onUnmounted(() => {
 
   .game-title {
     justify-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.15rem;
     white-space: nowrap;
     margin: 0;
     text-align: center;
+  }
+
+  .header-title-text {
+    display: none;
+  }
+
+  .header-title-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
   }
 
   .btn-sound {

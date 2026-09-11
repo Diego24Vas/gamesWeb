@@ -5,61 +5,54 @@
     fill="none"
     class="menu-svg-icon"
   >
-    <!-- Marco de arcade redondeado retro-moderno -->
-    <rect x="4" y="4" width="40" height="40" rx="10" fill="#0f172a" />
-    <rect x="6" y="6" width="36" height="36" rx="8" fill="#1e293b" />
+    <!-- Pieza T (Púrpura en la parte superior central) -->
+    <rect x="20" y="5" width="8" height="8" rx="2" fill="#a855f7" />
+    <rect x="21" y="6" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.4)" />
 
-    <!-- Cuadrícula sutil de fondo -->
-    <line x1="12" y1="8" x2="12" y2="40" stroke="#334155" stroke-width="0.75" stroke-dasharray="1 2" />
-    <line x1="18" y1="8" x2="18" y2="40" stroke="#334155" stroke-width="0.75" stroke-dasharray="1 2" />
-    <line x1="24" y1="8" x2="24" y2="40" stroke="#334155" stroke-width="0.75" stroke-dasharray="1 2" />
-    <line x1="30" y1="8" x2="30" y2="40" stroke="#334155" stroke-width="0.75" stroke-dasharray="1 2" />
-    <line x1="36" y1="8" x2="36" y2="40" stroke="#334155" stroke-width="0.75" stroke-dasharray="1 2" />
+    <rect x="11" y="14" width="8" height="8" rx="2" fill="#a855f7" />
+    <rect x="12" y="15" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.4)" />
 
-    <!-- Pieza O (Cuadrado Amarillo 2x2 en la esquina inferior izquierda) -->
-    <rect x="10" y="28" width="5.5" height="5.5" rx="1.2" fill="#eab308" />
-    <rect x="16" y="28" width="5.5" height="5.5" rx="1.2" fill="#eab308" />
-    <rect x="10" y="34" width="5.5" height="5.5" rx="1.2" fill="#eab308" />
-    <rect x="16" y="34" width="5.5" height="5.5" rx="1.2" fill="#eab308" />
-    <!-- Brillos O -->
-    <rect x="11" y="29" width="3.5" height="1.2" rx="0.5" fill="#fef08a" />
-    <rect x="17" y="29" width="3.5" height="1.2" rx="0.5" fill="#fef08a" />
-    <rect x="11" y="35" width="3.5" height="1.2" rx="0.5" fill="#fef08a" />
-    <rect x="17" y="35" width="3.5" height="1.2" rx="0.5" fill="#fef08a" />
+    <rect x="20" y="14" width="8" height="8" rx="2" fill="#a855f7" />
+    <rect x="21" y="15" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.4)" />
+
+    <rect x="29" y="14" width="8" height="8" rx="2" fill="#a855f7" />
+    <rect x="30" y="15" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.4)" />
 
     <!-- Pieza I (Cian vertical en el lado derecho) -->
-    <rect x="32" y="16" width="5.5" height="5.5" rx="1.2" fill="#06b6d4" />
-    <rect x="32" y="22" width="5.5" height="5.5" rx="1.2" fill="#06b6d4" />
-    <rect x="32" y="28" width="5.5" height="5.5" rx="1.2" fill="#06b6d4" />
-    <rect x="32" y="34" width="5.5" height="5.5" rx="1.2" fill="#06b6d4" />
-    <!-- Brillos I -->
-    <rect x="33" y="17" width="3.5" height="1.2" rx="0.5" fill="#a5f3fc" />
-    <rect x="33" y="23" width="3.5" height="1.2" rx="0.5" fill="#a5f3fc" />
-    <rect x="33" y="29" width="3.5" height="1.2" rx="0.5" fill="#a5f3fc" />
-    <rect x="33" y="35" width="3.5" height="1.2" rx="0.5" fill="#a5f3fc" />
+    <rect x="38" y="5" width="8" height="8" rx="2" fill="#06b6d4" />
+    <rect x="39" y="6" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
 
-    <!-- Pieza L (Naranja en la base central) -->
-    <rect x="22" y="34" width="5.5" height="5.5" rx="1.2" fill="#f97316" />
-    <rect x="26" y="34" width="5.5" height="5.5" rx="1.2" fill="#f97316" />
-    <rect x="26" y="28" width="5.5" height="5.5" rx="1.2" fill="#f97316" />
-    <!-- Brillos L -->
-    <rect x="23" y="35" width="3.5" height="1.2" rx="0.5" fill="#fed7aa" />
-    <rect x="27" y="35" width="3.5" height="1.2" rx="0.5" fill="#fed7aa" />
-    <rect x="27" y="29" width="3.5" height="1.2" rx="0.5" fill="#fed7aa" />
+    <rect x="38" y="14" width="8" height="8" rx="2" fill="#06b6d4" />
+    <rect x="39" y="15" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
 
-    <!-- Pieza T (Púrpura cayendo en el centro superior) -->
-    <rect x="20" y="10" width="5.5" height="5.5" rx="1.2" fill="#a855f7" />
-    <rect x="14" y="16" width="5.5" height="5.5" rx="1.2" fill="#a855f7" />
-    <rect x="20" y="16" width="5.5" height="5.5" rx="1.2" fill="#a855f7" />
-    <rect x="26" y="16" width="5.5" height="5.5" rx="1.2" fill="#a855f7" />
-    <!-- Brillos T -->
-    <rect x="21" y="11" width="3.5" height="1.2" rx="0.5" fill="#e9d5ff" />
-    <rect x="15" y="17" width="3.5" height="1.2" rx="0.5" fill="#e9d5ff" />
-    <rect x="21" y="17" width="3.5" height="1.2" rx="0.5" fill="#e9d5ff" />
-    <rect x="27" y="17" width="3.5" height="1.2" rx="0.5" fill="#e9d5ff" />
+    <rect x="38" y="23" width="8" height="8" rx="2" fill="#06b6d4" />
+    <rect x="39" y="24" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
 
-    <!-- Estela / Flecha sutil hacia abajo -->
-    <path d="M22.75 8L22.75 6" stroke="#c084fc" stroke-width="1.5" stroke-linecap="round" />
+    <rect x="38" y="32" width="8" height="8" rx="2" fill="#06b6d4" />
+    <rect x="39" y="33" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
+
+    <!-- Pieza O (Cuadrado Amarillo 2x2 en la base izquierda) -->
+    <rect x="2" y="26" width="8" height="8" rx="2" fill="#eab308" />
+    <rect x="3" y="27" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
+
+    <rect x="11" y="26" width="8" height="8" rx="2" fill="#eab308" />
+    <rect x="12" y="27" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
+
+    <rect x="2" y="35" width="8" height="8" rx="2" fill="#eab308" />
+    <rect x="3" y="36" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
+
+    <rect x="11" y="35" width="8" height="8" rx="2" fill="#eab308" />
+    <rect x="12" y="36" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
+
+    <!-- Pieza L (Naranja en la base central/derecha) -->
+    <rect x="20" y="26" width="8" height="8" rx="2" fill="#f97316" />
+    <rect x="21" y="27" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
+
+    <rect x="20" y="35" width="8" height="8" rx="2" fill="#f97316" />
+    <rect x="21" y="36" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
+
+    <rect x="29" y="35" width="8" height="8" rx="2" fill="#f97316" />
+    <rect x="30" y="36" width="4.5" height="2" rx="0.8" fill="rgba(255,255,255,0.45)" />
   </svg>
 </template>
 

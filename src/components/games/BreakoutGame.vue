@@ -10,7 +10,8 @@ import {
   IconPlay,
   IconPause,
   IconVolume,
-  IconVolumeMute
+  IconVolumeMute,
+  IconBreakout
 } from '../icons';
 
 const emit = defineEmits<{
@@ -830,6 +831,13 @@ const updateGame = (deltaTime: number) => {
     scores.lives--;
     playSound('lose_ball');
 
+    addScorePopup(
+      paddle.x + paddle.width / 2,
+      paddle.y - 25,
+      `¡Pelota Perdida! -1 Vida (${Math.max(0, scores.lives)} restantes)`,
+      '#ef4444'
+    );
+
     if (scores.lives <= 0) {
       gameStatus.value = 'gameover';
       playSound('gameover');
@@ -837,6 +845,7 @@ const updateGame = (deltaTime: number) => {
       // Reiniciar paleta y pelota pegada
       paddle.width = paddle.baseWidth;
       paddle.expandTimer = 0;
+      paddle.x = (VIRTUAL_WIDTH - paddle.baseWidth) / 2;
       balls.value = [createStuckBall()];
     }
   }
@@ -1264,7 +1273,10 @@ onUnmounted(() => {
       <button class="btn-back" type="button" @click="emit('back')">
         <IconArrowLeft class="btn-icon" /> Volver al Menú
       </button>
-      <h2 class="game-title">Breakout / Arkanoid</h2>
+      <h2 class="game-title">
+        <span class="header-title-text">Breakout / Arkanoid</span>
+        <IconBreakout class="header-title-icon" aria-hidden="true" />
+      </h2>
       <button
         class="btn-sound"
         type="button"
@@ -1367,15 +1379,17 @@ onUnmounted(() => {
             <span class="card-label">Puntos</span>
             <span class="card-value">{{ scores.current }}</span>
           </div>
-          <div class="score-card lives-card">
+          <div class="score-card lives-card" :class="{ 'low-lives': scores.lives <= 1 }">
             <span class="card-label">Vidas</span>
-            <div class="lives-icons">
-              <IconHeart
-                v-for="i in 5"
-                :key="i"
-                class="heart-icon"
-                :class="{ active: i <= scores.lives }"
-              />
+            <div class="lives-wrapper">
+              <span class="card-value lives-count">{{ scores.lives }}</span>
+              <div class="lives-icons" :aria-label="`${scores.lives} vidas restantes`">
+                <IconHeart
+                  v-for="i in scores.lives"
+                  :key="i"
+                  class="heart-icon active"
+                />
+              </div>
             </div>
           </div>
           <div class="score-card high-score" :class="{ 'is-new-record': isNewHighScore }">
@@ -1481,11 +1495,31 @@ onUnmounted(() => {
 }
 
 .game-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.45rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
   text-align: center;
+}
+
+.header-title-icon {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .header-title-text {
+    display: none;
+  }
+
+  .header-title-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
 }
 
 .btn-back {
@@ -1603,22 +1637,42 @@ onUnmounted(() => {
   color: #0f172a;
 }
 
-.lives-icons {
+.lives-wrapper {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 0.4rem;
   height: 1.6rem;
 }
 
+.lives-count {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.lives-card.low-lives .lives-count {
+  color: #ef4444;
+}
+
+.lives-icons {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+}
+
 .heart-icon {
-  font-size: 1.15rem;
-  color: #cbd5e1;
-  transition: all 0.2s ease;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #94a3b8;
+  opacity: 0.35;
+  transition: all 0.25s ease;
 }
 
 .heart-icon.active {
   color: #ef4444;
+  opacity: 1;
   filter: drop-shadow(0 1px 2px rgba(239, 68, 68, 0.4));
+  transform: scale(1.05);
 }
 
 /* Canvas y Contenedor */
@@ -1891,12 +1945,19 @@ onUnmounted(() => {
   .card-value {
     font-size: 1.15rem;
   }
-  .lives-icons {
-    gap: 2px;
+  .lives-wrapper {
+    gap: 0.25rem;
     height: 1.3rem;
   }
+  .lives-count {
+    font-size: 1.15rem;
+  }
+  .lives-icons {
+    gap: 1.5px;
+  }
   .heart-icon {
-    font-size: 0.95rem;
+    width: 0.85rem;
+    height: 0.85rem;
   }
 
   /* Canvas wrapper */

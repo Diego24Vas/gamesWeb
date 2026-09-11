@@ -37,3 +37,6 @@ export { default as IconWordle } from './IconWordle.vue';
 export { default as IconBackspace } from './IconBackspace.vue';
 export { default as IconTetris } from './IconTetris.vue';
 export { default as IconRotate } from './IconRotate.vue';
+export { default as IconSpaceInvaders } from './IconSpaceInvaders.vue';
+export { default as IconSudoku } from './IconSudoku.vue';
+export { default as IconWordSearch } from './IconWordSearch.vue';

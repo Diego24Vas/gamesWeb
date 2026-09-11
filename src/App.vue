@@ -11,6 +11,9 @@ import FlappyBirdGame from './components/games/FlappyBirdGame.vue';
 import HanoiGame from './components/games/HanoiGame.vue';
 import WordleGame from './components/games/WordleGame.vue';
 import TetrisGame from './components/games/TetrisGame.vue';
+import SpaceInvadersGame from './components/games/SpaceInvadersGame.vue';
+import SudokuGame from './components/games/SudokuGame.vue';
+import WordSearchGame from './components/games/WordSearchGame.vue';
 import { IconGamepad } from './components/icons';
 
 // Estado global de la vista activa
@@ -65,6 +68,21 @@ const navigateToMenu = () => {
         <TetrisGame
           v-else-if="currentView === 'tetris'"
           key="tetris"
+          @back="navigateToMenu"
+        />
+        <SpaceInvadersGame
+          v-else-if="currentView === 'invaders'"
+          key="invaders"
+          @back="navigateToMenu"
+        />
+        <SudokuGame
+          v-else-if="currentView === 'sudoku'"
+          key="sudoku"
+          @back="navigateToMenu"
+        />
+        <WordSearchGame
+          v-else-if="currentView === 'wordsearch'"
+          key="wordsearch"
           @back="navigateToMenu"
         />
         <WordleGame

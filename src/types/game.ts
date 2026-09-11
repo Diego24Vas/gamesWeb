@@ -1,4 +1,4 @@
-export type ViewState = 'menu' | 'tictactoe' | 'connect4' | 'memory' | 'snake' | 'breakout' | 'flappy' | 'hanoi' | 'wordle' | 'tetris';
+export type ViewState = 'menu' | 'tictactoe' | 'connect4' | 'memory' | 'snake' | 'breakout' | 'flappy' | 'hanoi' | 'wordle' | 'tetris' | 'invaders' | 'sudoku' | 'wordsearch';
 
 export interface GameMetadata {
   id: ViewState;
@@ -157,4 +157,61 @@ export interface TetrisScoreState {
   high: number;
   lines: number;
   level: number;
+}
+
+export type InvadersDifficulty = 'easy' | 'normal' | 'hard';
+
+export interface InvadersScoreState {
+  current: number;
+  high: number;
+  lives: number;
+  wave: number;
+}
+
+export type SudokuDifficulty = 'easy' | 'medium' | 'hard' | 'expert';
+
+export interface SudokuSavedGame {
+  initialBoard: number[][];
+  currentBoard: number[][];
+  solution: number[][];
+  notes: number[][][];
+  difficulty: SudokuDifficulty;
+  timeElapsed: number;
+  mistakes: number;
+  isComplete: boolean;
+}
+
+export interface SudokuStats {
+  gamesPlayed: number;
+  gamesWon: number;
+  bestTime: Record<SudokuDifficulty, number | null>;
+}
+
+export type WordSearchDifficulty = 'easy' | 'medium' | 'hard' | 'expert';
+
+export interface WordSearchWord {
+  word: string;
+  found: boolean;
+  colorIndex: number;
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+  cells: [number, number][];
+}
+
+export interface WordSearchSavedGame {
+  difficulty: WordSearchDifficulty;
+  category: string;
+  size: number;
+  grid: string[][];
+  words: WordSearchWord[];
+  timeElapsed: number;
+  isComplete: boolean;
+}
+
+export interface WordSearchStats {
+  gamesPlayed: number;
+  gamesWon: number;
+  bestTime: Record<WordSearchDifficulty, number | null>;
 }

@@ -9,7 +9,10 @@ import {
   IconFlappyBird,
   IconHanoi,
   IconWordle,
-  IconTetris
+  IconTetris,
+  IconSpaceInvaders,
+  IconSudoku,
+  IconWordSearch
 } from './icons';
 
 const emit = defineEmits<{
@@ -26,6 +29,18 @@ const singlePlayerGames: GameItem[] = [
   {
     id: 'tetris',
     title: 'Tetris'
+  },
+  {
+    id: 'invaders',
+    title: 'Space Invaders'
+  },
+  {
+    id: 'sudoku',
+    title: 'Sudoku'
+  },
+  {
+    id: 'wordsearch',
+    title: 'Sopa de Letras'
   },
   {
     id: 'snake',
@@ -87,6 +102,9 @@ const handleSelectGame = (gameId: ViewState) => {
         >
           <div class="card-icon" aria-hidden="true">
             <IconTetris v-if="game.id === 'tetris'" />
+            <IconSpaceInvaders v-else-if="game.id === 'invaders'" />
+            <IconSudoku v-else-if="game.id === 'sudoku'" />
+            <IconWordSearch v-else-if="game.id === 'wordsearch'" />
             <IconSnake v-else-if="game.id === 'snake'" />
             <IconBreakout v-else-if="game.id === 'breakout'" />
             <IconFlappyBird v-else-if="game.id === 'flappy'" />

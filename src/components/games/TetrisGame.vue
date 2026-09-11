@@ -11,7 +11,8 @@ import {
   IconVolume,
   IconVolumeMute,
   IconRotate,
-  IconSparkles
+  IconSparkles,
+  IconTetris
 } from '../icons';
 
 const emit = defineEmits<{
@@ -1290,7 +1291,10 @@ onUnmounted(() => {
         <span class="btn-text-full">Volver al Menú</span>
         <span class="btn-text-short">Volver</span>
       </button>
-      <h2 class="game-title">Tetris</h2>
+      <h2 class="game-title">
+        <span class="header-title-text">Tetris</span>
+        <IconTetris class="header-title-icon" aria-hidden="true" />
+      </h2>
       <div class="header-actions">
         <button
           v-if="gameStatus === 'playing' || gameStatus === 'paused'"
@@ -1702,11 +1706,31 @@ onUnmounted(() => {
 }
 
 .game-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.55rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
   text-align: center;
+}
+
+.header-title-icon {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .header-title-text {
+    display: none;
+  }
+
+  .header-title-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
 }
 
 .btn-back {

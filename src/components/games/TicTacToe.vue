@@ -8,7 +8,8 @@ import {
   IconTrophy,
   IconHandshake,
   IconCross,
-  IconCircle
+  IconCircle,
+  IconTicTacToe
 } from '../icons';
 
 const emit = defineEmits<{
@@ -118,7 +119,10 @@ const isWinningCell = (index: number): boolean => {
       <button class="btn-back" type="button" @click="emit('back')">
         <IconArrowLeft class="btn-icon" /> Volver al Menú
       </button>
-      <h2 class="game-title">Tres en Línea</h2>
+      <h2 class="game-title">
+        <span class="header-title-text">Tres en Línea</span>
+        <IconTicTacToe class="header-title-icon" aria-hidden="true" />
+      </h2>
       <div class="header-spacer" aria-hidden="true"></div>
     </header>
 
@@ -225,6 +229,10 @@ const isWinningCell = (index: number): boolean => {
   color: #0f172a;
   margin: 0;
   text-align: center;
+}
+
+.header-title-icon {
+  display: none;
 }
 
 .header-spacer {
@@ -510,10 +518,22 @@ const isWinningCell = (index: number): boolean => {
   }
   .game-title {
     justify-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.2rem;
     white-space: nowrap;
     margin: 0;
     text-align: center;
+  }
+  .header-title-text {
+    display: none;
+  }
+  .header-title-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
   }
   .header-spacer {
     justify-self: end;

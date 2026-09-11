@@ -9,7 +9,8 @@ import {
   IconPlay,
   IconPause,
   IconVolume,
-  IconVolumeMute
+  IconVolumeMute,
+  IconSnake
 } from '../icons';
 
 const emit = defineEmits<{
@@ -956,7 +957,10 @@ onUnmounted(() => {
       <button class="btn-back" type="button" @click="emit('back')">
         <IconArrowLeft class="btn-icon" /> Volver al Menú
       </button>
-      <h2 class="game-title">Snake (La Culebrita)</h2>
+      <h2 class="game-title">
+        <span class="header-title-text">Snake (La Culebrita)</span>
+        <IconSnake class="header-title-icon" aria-hidden="true" />
+      </h2>
       <button
         class="btn-sound"
         type="button"
@@ -1156,11 +1160,31 @@ onUnmounted(() => {
 }
 
 .game-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.45rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
   text-align: center;
+}
+
+.header-title-icon {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .header-title-text {
+    display: none;
+  }
+
+  .header-title-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
 }
 
 .btn-back {
