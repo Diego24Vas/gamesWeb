@@ -528,7 +528,18 @@ onMounted(() => {
     console.warn(e);
   }
 
-  checkSavedGame();
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const diffParam = urlParams.get('diff') as WordSearchDifficulty | null;
+    if (diffParam && ['easy', 'medium', 'hard', 'expert'].includes(diffParam)) {
+      startNewGame(diffParam);
+    } else {
+      checkSavedGame();
+    }
+  } catch (e) {
+    console.warn(e);
+    checkSavedGame();
+  }
 
   // Escuchar soltar puntero globalmente para evitar selecciones atascadas
   window.addEventListener('pointerup', handlePointerUp);
@@ -710,11 +721,13 @@ onUnmounted(() => {
         <!-- TABLERO DE LA SOPA DE LETRAS -->
         <div
           class="ws-grid-card"
+          :class="`ws-card-${difficulty}`"
           @touchmove.prevent="handleTouchMove"
           @touchend="handlePointerUp"
         >
           <div
             class="ws-grid"
+            :class="`ws-grid-${difficulty}`"
             :style="{
               gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`
             }"
@@ -1202,10 +1215,11 @@ onUnmounted(() => {
   width: 100%;
 }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .ws-board-and-words {
     flex-direction: column;
     align-items: center;
+    gap: 1.25rem;
   }
 }
 
@@ -1217,7 +1231,25 @@ onUnmounted(() => {
   padding: 0.85rem;
   box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.05);
   touch-action: none;
-  max-width: 100%;
+  width: 100%;
+  max-width: 680px;
+  box-sizing: border-box;
+}
+
+.ws-card-easy {
+  max-width: 480px;
+}
+
+.ws-card-medium {
+  max-width: 550px;
+}
+
+.ws-card-hard {
+  max-width: 620px;
+}
+
+.ws-card-expert {
+  max-width: 680px;
 }
 
 .ws-grid {
@@ -1226,17 +1258,30 @@ onUnmounted(() => {
   background: #f1f5f9;
   padding: 4px;
   border-radius: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ws-grid-hard {
+  gap: 2.5px;
+}
+
+.ws-grid-expert {
+  gap: 2.5px;
 }
 
 /* Celda de letra */
 .ws-cell {
   aspect-ratio: 1 / 1;
-  width: clamp(24px, 4.5vw, 42px);
-  height: clamp(24px, 4.5vw, 42px);
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  font-size: clamp(0.75rem, 2vw, 1.15rem);
+  font-size: clamp(0.72rem, 1.6vw, 1.15rem);
   font-weight: 800;
   color: #1e293b;
   display: flex;
@@ -1244,16 +1289,29 @@ onUnmounted(() => {
   justify-content: center;
   cursor: pointer;
   padding: 0;
+  line-height: 1;
   outline: none;
   transition: transform 0.1s ease, background 0.15s ease;
   user-select: none;
   -webkit-user-select: none;
 }
 
-.ws-cell:hover {
-  background: #f8fafc;
-  transform: scale(1.05);
-  z-index: 2;
+.ws-grid-hard .ws-cell {
+  border-radius: 5px;
+  font-size: clamp(0.68rem, 1.45vw, 1.05rem);
+}
+
+.ws-grid-expert .ws-cell {
+  border-radius: 5px;
+  font-size: clamp(0.62rem, 1.3vw, 0.95rem);
+}
+
+@media (hover: hover) {
+  .ws-cell:hover {
+    background: #f8fafc;
+    transform: scale(1.05);
+    z-index: 2;
+  }
 }
 
 /* Celda durante la selección activa */
@@ -1293,15 +1351,74 @@ onUnmounted(() => {
   min-width: 250px;
   max-width: 320px;
   width: 100%;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
   box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .words-panel {
+    max-width: 680px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ws-grid-card {
+    padding: 0.45rem;
+    border-radius: 14px;
     max-width: 100%;
+  }
+
+  .ws-grid {
+    padding: 3px;
+    gap: 2px;
+    border-radius: 10px;
+  }
+
+  .ws-grid-hard,
+  .ws-grid-expert {
+    gap: 2px;
+  }
+
+  .ws-cell {
+    border-radius: 4px;
+    font-size: clamp(10px, 3.1vw, 15px);
+  }
+
+  .ws-grid-hard .ws-cell {
+    border-radius: 3.5px;
+    font-size: clamp(9px, 2.7vw, 13px);
+  }
+
+  .ws-grid-expert .ws-cell {
+    border-radius: 3px;
+    font-size: clamp(8.5px, 2.45vw, 12px);
+  }
+}
+
+@media (max-width: 380px) {
+  .ws-grid-card {
+    padding: 0.35rem;
+    border-radius: 12px;
+  }
+
+  .ws-grid {
+    padding: 2.5px;
+    gap: 1.5px;
+    border-radius: 8px;
+  }
+
+  .ws-grid-hard,
+  .ws-grid-expert {
+    gap: 1.5px;
+  }
+
+  .ws-grid-expert .ws-cell {
+    border-radius: 2.5px;
+    font-size: clamp(8px, 2.4vw, 10.5px);
   }
 }
 

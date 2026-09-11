@@ -16,16 +16,35 @@ import SudokuGame from './components/games/SudokuGame.vue';
 import WordSearchGame from './components/games/WordSearchGame.vue';
 import { IconGamepad } from './components/icons';
 
-// Estado global de la vista activa
-const currentView = ref<ViewState>('menu');
+// Estado global de la vista activa con soporte para hash en URL
+const VALID_VIEWS: ViewState[] = [
+  'menu', 'snake', 'breakout', 'flappy', 'hanoi', 'tetris',
+  'invaders', 'sudoku', 'wordsearch', 'wordle', 'tictactoe', 'connect4', 'memory'
+];
+
+function getViewFromHash(): ViewState {
+  if (typeof window === 'undefined') return 'menu';
+  const hash = window.location.hash.replace('#', '') as ViewState;
+  return VALID_VIEWS.includes(hash) ? hash : 'menu';
+}
+
+const currentView = ref<ViewState>(getViewFromHash());
 
 const navigateToGame = (gameId: ViewState) => {
   currentView.value = gameId;
+  window.location.hash = gameId;
 };
 
 const navigateToMenu = () => {
   currentView.value = 'menu';
+  window.location.hash = '';
 };
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('hashchange', () => {
+    currentView.value = getViewFromHash();
+  });
+}
 </script>
 
 <template>
