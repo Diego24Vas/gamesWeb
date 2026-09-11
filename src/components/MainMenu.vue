@@ -15,7 +15,8 @@ import {
   IconSudoku,
   IconWordSearch,
   IconBot,
-  IconUsers
+  IconUsers,
+  IconBomb
 } from './icons';
 
 const emit = defineEmits<{
@@ -61,6 +62,10 @@ const singlePlayerGames: GameItem[] = [
   {
     id: 'sudoku',
     title: 'Sudoku'
+  },
+  {
+    id: 'minesweeper',
+    title: 'Buscaminas'
   },
   {
     id: 'wordsearch',
@@ -128,6 +133,7 @@ const handleSelectGame = (gameId: ViewState) => {
             <IconTetris v-if="game.id === 'tetris'" />
             <IconSpaceInvaders v-else-if="game.id === 'invaders'" />
             <IconSudoku v-else-if="game.id === 'sudoku'" />
+            <IconBomb v-else-if="game.id === 'minesweeper'" />
             <IconWordSearch v-else-if="game.id === 'wordsearch'" />
             <IconSnake v-else-if="game.id === 'snake'" />
             <IconBreakout v-else-if="game.id === 'breakout'" />

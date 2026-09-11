@@ -42,3 +42,6 @@ export { default as IconSudoku } from './IconSudoku.vue';
 export { default as IconWordSearch } from './IconWordSearch.vue';
 export { default as IconBot } from './IconBot.vue';
 export { default as IconUsers } from './IconUsers.vue';
+export { default as IconBomb } from './IconBomb.vue';
+export { default as IconFlag } from './IconFlag.vue';
+export { default as IconMine } from './IconMine.vue';

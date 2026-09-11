@@ -1,4 +1,4 @@
-export type ViewState = 'menu' | 'tictactoe' | 'connect4' | 'memory' | 'snake' | 'breakout' | 'flappy' | 'hanoi' | 'wordle' | 'tetris' | 'invaders' | 'sudoku' | 'wordsearch';
+export type ViewState = 'menu' | 'tictactoe' | 'connect4' | 'memory' | 'snake' | 'breakout' | 'flappy' | 'hanoi' | 'wordle' | 'tetris' | 'invaders' | 'sudoku' | 'wordsearch' | 'minesweeper';
 
 export interface GameMetadata {
   id: ViewState;
@@ -217,3 +217,27 @@ export interface WordSearchStats {
   gamesWon: number;
   bestTime: Record<WordSearchDifficulty, number | null>;
 }
+
+export type MinesweeperDifficulty = 'easy' | 'medium' | 'hard';
+
+export interface MinesweeperCell {
+  row: number;
+  col: number;
+  isMine: boolean;
+  isRevealed: boolean;
+  isFlagged: boolean;
+  adjacentMines: number;
+  isTriggered?: boolean;
+  isMisplaced?: boolean;
+}
+
+export type MinesweeperStatus = 'idle' | 'playing' | 'won' | 'lost';
+
+export interface MinesweeperSavedGame {
+  difficulty: MinesweeperDifficulty;
+  board: MinesweeperCell[][];
+  timeElapsed: number;
+  firstClickMade: boolean;
+  isComplete: boolean;
+}
+

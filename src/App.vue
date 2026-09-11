@@ -14,12 +14,13 @@ import TetrisGame from './components/games/TetrisGame.vue';
 import SpaceInvadersGame from './components/games/SpaceInvadersGame.vue';
 import SudokuGame from './components/games/SudokuGame.vue';
 import WordSearchGame from './components/games/WordSearchGame.vue';
+import MinesweeperGame from './components/games/MinesweeperGame.vue';
 import { IconGamepad } from './components/icons';
 
 // Estado global de la vista activa con soporte para hash en URL
 const VALID_VIEWS: ViewState[] = [
   'menu', 'snake', 'breakout', 'flappy', 'hanoi', 'tetris',
-  'invaders', 'sudoku', 'wordsearch', 'wordle', 'tictactoe', 'connect4', 'memory'
+  'invaders', 'sudoku', 'wordsearch', 'wordle', 'tictactoe', 'connect4', 'memory', 'minesweeper'
 ];
 
 function getViewFromHash(): ViewState {
@@ -134,6 +135,11 @@ if (typeof window !== 'undefined') {
         <MemoryGame
           v-else-if="currentView === 'memory'"
           key="memory"
+          @back="navigateToMenu"
+        />
+        <MinesweeperGame
+          v-else-if="currentView === 'minesweeper'"
+          key="minesweeper"
           @back="navigateToMenu"
         />
       </Transition>
