@@ -446,6 +446,7 @@ const updateGame = () => {
       scores.current++;
       playSound('score');
       if (scores.current > scores.high) {
+        isNewHighScore.value = true;
         saveHighscore(scores.current);
       }
     }

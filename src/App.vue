@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import type { ViewState, GamePlayMode } from './types/game';
 import MainMenu from './components/MainMenu.vue';
 import TicTacToe from './components/games/TicTacToe.vue';
@@ -30,6 +30,31 @@ function getViewFromHash(): ViewState {
 }
 
 const currentView = ref<ViewState>(getViewFromHash());
+const isOnline = ref(typeof navigator === 'undefined' ? true : navigator.onLine);
+const installPrompt = ref<BeforeInstallPromptEvent | null>(null);
+const isInstalled = ref(false);
+const canInstall = computed(() => Boolean(installPrompt.value) && !isInstalled.value);
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
+const updateConnection = () => { isOnline.value = navigator.onLine; };
+const captureInstallPrompt = (event: Event) => {
+  event.preventDefault();
+  installPrompt.value = event as BeforeInstallPromptEvent;
+};
+const markInstalled = () => {
+  isInstalled.value = true;
+  installPrompt.value = null;
+};
+const installApp = async () => {
+  if (!installPrompt.value) return;
+  await installPrompt.value.prompt();
+  await installPrompt.value.userChoice;
+  installPrompt.value = null;
+};
 const selectedGameModes = ref<{
   tictactoe: GamePlayMode;
   connect4: GamePlayMode;
@@ -56,6 +81,22 @@ if (typeof window !== 'undefined') {
     currentView.value = getViewFromHash();
   });
 }
+
+onMounted(() => {
+  isInstalled.value = window.matchMedia('(display-mode: standalone)').matches ||
+    Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+  window.addEventListener('online', updateConnection);
+  window.addEventListener('offline', updateConnection);
+  window.addEventListener('beforeinstallprompt', captureInstallPrompt);
+  window.addEventListener('appinstalled', markInstalled);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('online', updateConnection);
+  window.removeEventListener('offline', updateConnection);
+  window.removeEventListener('beforeinstallprompt', captureInstallPrompt);
+  window.removeEventListener('appinstalled', markInstalled);
+});
 </script>
 
 <template>
@@ -65,6 +106,15 @@ if (typeof window !== 'undefined') {
         <h1 class="brand-title" @click="navigateToMenu">
           <IconGamepad class="brand-icon" /> MiniJuegos
         </h1>
+        <div class="app-actions">
+          <span v-if="!isOnline" class="connection-status offline" role="status">
+            <span class="connection-dot" aria-hidden="true"></span>
+            Sin conexión
+          </span>
+          <button v-if="canInstall" class="install-button" type="button" @click="installApp">
+            Instalar app
+          </button>
+        </div>
       </div>
     </header>
 
@@ -183,6 +233,35 @@ if (typeof window !== 'undefined') {
   max-width: 1040px;
   margin: 0 auto;
   text-align: center;
+}
+
+.app-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.connection-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #15803d;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.connection-status.offline { color: #b45309; }
+.connection-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: currentColor; }
+
+.install-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
 }
 
 .brand-title {

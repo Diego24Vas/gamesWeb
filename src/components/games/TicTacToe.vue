@@ -118,12 +118,7 @@ function minimax(b: Board, depth: number, isMaximizing: boolean): number {
 }
 
 function getBestMove(b: Board): number {
-  // 1. Si el centro está libre, tiene alta prioridad estratégica
-  if (b[4] === null && Math.random() < 0.75) {
-    return 4;
-  }
-
-  // 2. Ejecutar Minimax para encontrar la mejor jugada
+  // Evaluar todas las jugadas para no omitir victorias o bloqueos inmediatos.
   let bestVal = -Infinity;
   let bestMove = -1;
   const moves: { index: number; score: number }[] = [];

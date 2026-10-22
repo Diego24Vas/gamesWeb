@@ -373,11 +373,6 @@ const toggleFlag = (r: number, c: number) => {
   const cell = board.value[r]?.[c];
   if (!cell || cell.isRevealed) return;
 
-  if (!firstClickMade.value) {
-    firstClickMade.value = true;
-    startTimer();
-  }
-
   cell.isFlagged = !cell.isFlagged;
   if (gameStatus.value === 'playing') {
     saveGameState();
@@ -533,6 +528,7 @@ onMounted(() => {
   checkSavedGame();
   if (typeof window !== 'undefined') {
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
   }
   gameStatus.value = 'idle';
 });
@@ -540,6 +536,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.removeEventListener('pagehide', handleBeforeUnload);
   }
   stopTimer();
   if (gameStatus.value === 'playing' && firstClickMade.value) {

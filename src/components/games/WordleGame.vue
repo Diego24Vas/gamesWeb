@@ -627,7 +627,7 @@ onUnmounted(() => {
     <footer class="game-controls">
       <button
         type="button"
-        class="btn btn-primary"
+        class="btn btn-new-word"
         @click="startNewGame"
       >
         <IconRefresh class="btn-icon" /> Nueva Palabra
@@ -1117,6 +1117,18 @@ onUnmounted(() => {
   opacity: 0.7;
 }
 
+.key-btn.key-enter {
+  flex: 2;
+  max-width: 92px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.key-btn.key-enter:hover {
+  background: #1d4ed8;
+}
+
 /* Botones de control inferiores */
 .game-controls {
   display: flex;
@@ -1139,14 +1151,15 @@ onUnmounted(() => {
   border: 1px solid transparent;
 }
 
-.btn-primary {
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
+.btn-new-word {
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
 }
 
-.btn-primary:hover {
-  background: #1d4ed8;
+.btn-new-word:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
 }
 
 .btn-secondary {
@@ -1419,7 +1432,11 @@ onUnmounted(() => {
     border-radius: 5px;
   }
 
-  .key-btn.key-enter,
+  .key-btn.key-enter {
+    font-size: 0.82rem;
+    max-width: 86px;
+  }
+
   .key-btn.key-backspace {
     font-size: 0.74rem;
   }

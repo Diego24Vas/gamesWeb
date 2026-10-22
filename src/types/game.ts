@@ -180,6 +180,7 @@ export interface SudokuSavedGame {
   difficulty: SudokuDifficulty;
   timeElapsed: number;
   mistakes: number;
+  hintsRemaining?: number;
   isComplete: boolean;
 }
 
@@ -209,6 +210,7 @@ export interface WordSearchSavedGame {
   grid: string[][];
   words: WordSearchWord[];
   timeElapsed: number;
+  hintsRemaining?: number;
   isComplete: boolean;
 }
 

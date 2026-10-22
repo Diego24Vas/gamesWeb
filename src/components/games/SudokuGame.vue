@@ -184,6 +184,7 @@ const saveGameState = () => {
     difficulty: difficulty.value,
     timeElapsed: timeElapsed.value,
     mistakes: mistakes.value,
+    hintsRemaining: hintsRemaining.value,
     isComplete: gameStatus.value === 'won'
   };
 
@@ -233,6 +234,7 @@ const resumeSavedGame = () => {
   difficulty.value = saved.difficulty || 'medium';
   timeElapsed.value = saved.timeElapsed || 0;
   mistakes.value = saved.mistakes || 0;
+  hintsRemaining.value = saved.hintsRemaining ?? 3;
   history.value = [];
   selectedCell.value = null;
 
@@ -690,11 +692,13 @@ onMounted(() => {
   }
   checkSavedGame();
   window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('pagehide', saveGameState);
 });
 
 onUnmounted(() => {
   stopTimer();
   window.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener('pagehide', saveGameState);
   if (audioCtx) {
     audioCtx.close().catch(() => {});
   }

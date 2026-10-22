@@ -239,6 +239,7 @@ function saveGame() {
     grid: grid.value,
     words: words.value,
     timeElapsed: timeElapsed.value,
+    hintsRemaining: hintsRemaining.value,
     isComplete: allWordsFound.value
   };
 
@@ -279,6 +280,7 @@ function resumeSavedGame() {
   grid.value = data.grid;
   words.value = data.words;
   timeElapsed.value = data.timeElapsed;
+  hintsRemaining.value = data.hintsRemaining ?? 3;
   currentCategory.value = RANDOM_CATEGORY;
 
   gameStatus.value = 'playing';
@@ -309,6 +311,7 @@ function restartCurrentGame() {
       w.found = false;
     });
     timeElapsed.value = 0;
+    hintsRemaining.value = 3;
     clearSelection();
     saveGame();
   }
@@ -334,6 +337,7 @@ function giveHint() {
   const [firstR, firstC] = target.cells[0];
 
   hintsRemaining.value--;
+  saveGame();
   hintedCell.value = { row: firstR, col: firstC };
   playSound('hint');
 
@@ -544,6 +548,7 @@ onMounted(() => {
   // Escuchar soltar puntero globalmente para evitar selecciones atascadas
   window.addEventListener('pointerup', handlePointerUp);
   window.addEventListener('mouseup', handlePointerUp);
+  window.addEventListener('pagehide', saveGame);
 });
 
 onUnmounted(() => {
@@ -551,6 +556,7 @@ onUnmounted(() => {
   if (hintTimeout !== null) clearTimeout(hintTimeout);
   window.removeEventListener('pointerup', handlePointerUp);
   window.removeEventListener('mouseup', handlePointerUp);
+  window.removeEventListener('pagehide', saveGame);
 });
 </script>
 
